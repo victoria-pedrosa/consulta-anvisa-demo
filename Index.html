@@ -1,0 +1,2153 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Prova ANVISA - LC 214/2025</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{
+  --v900:#08251C; --v800:#0E3527; --v700:#14432F; --v600:#1B5E3F; --v500:#2D7A57;
+  --v400:#40916C; --v300:#74C69D; --v150:#B7E4C7; --v100:#D8F3DC; --v50:#F2F8F4;
+  --tx:#10201A; --mut:#5E7268; --bd:#DCE6E0; --card:#FFFFFF; --bg:#F4F7F5;
+  --ok:#1B5E3F; --warn:#9A5B00; --baixa:#7A6100; --err:#A62B22;
+  --sh:0 1px 2px rgba(8,37,28,.06),0 4px 14px rgba(8,37,28,.05);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);
+  font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  padding:0 0 132px}
+.wrap{max-width:1120px;margin:0 auto;padding:0 20px}
+
+/* ---------- cabecalho ---------- */
+header{background:linear-gradient(160deg,var(--v800),var(--v900));color:#fff;
+  padding:calc(26px + env(safe-area-inset-top,0px)) 0 26px;margin-bottom:22px}
+header h1{margin:0 0 6px;font-size:26px;font-weight:650;letter-spacing:-.01em}
+header p{margin:0;color:var(--v150);font-size:14.5px;max-width:70ch}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.chip{display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.10);
+  border:1px solid rgba(183,228,199,.28);color:#fff;padding:6px 12px;border-radius:999px;font-size:12.5px}
+.chip i{width:8px;height:8px;border-radius:50%;background:var(--v300);flex:0 0 auto}
+.chip.warn i{background:#F5B94A}.chip.err i{background:#FF8A7A}
+
+/* ---------- explicacao ---------- */
+.explica{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:24px}
+.etapa{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:16px 18px;box-shadow:var(--sh)}
+.etapa b{display:block;color:var(--v600);font-size:12px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px}
+.etapa h3{margin:0 0 6px;font-size:16px;font-weight:600}
+.etapa p{margin:0;color:var(--mut);font-size:13.5px}
+.etapa.mais{grid-column:1/-1;background:var(--v50);border-color:var(--v150)}
+.etapa.mais p{color:var(--v700)}
+
+/* ---------- passos ---------- */
+.passo{background:var(--card);border:1px solid var(--bd);border-radius:14px;
+  padding:18px 20px 20px;margin-bottom:14px;box-shadow:var(--sh);
+  border-left:4px solid var(--bd);transition:border-color .2s}
+.passo.feito{border-left-color:var(--v400)}
+.st-head{display:flex;align-items:flex-start;gap:13px;margin-bottom:14px}
+.st-num{flex:0 0 auto;width:30px;height:30px;border-radius:9px;background:var(--v50);
+  color:var(--v600);border:1px solid var(--v150);display:flex;align-items:center;justify-content:center;
+  font-weight:700;font-size:14px}
+.passo.feito .st-num{background:var(--v600);border-color:var(--v600);color:#fff}
+.passo.feito .st-num::after{content:'\2713';font-size:15px}
+.passo.feito .st-num span{display:none}
+.st-txt{flex:1 1 auto;min-width:0}
+.st-txt h2{margin:0;font-size:16.5px;font-weight:620;letter-spacing:-.005em}
+.st-txt p{margin:3px 0 0;color:var(--mut);font-size:13.5px}
+.st-status{flex:0 0 auto;font-size:12px;color:var(--mut);background:var(--bg);
+  border:1px solid var(--bd);border-radius:999px;padding:4px 11px;white-space:nowrap;max-width:46%;
+  overflow:hidden;text-overflow:ellipsis}
+.passo.feito .st-status{background:var(--v100);border-color:var(--v150);color:var(--v700);font-weight:600}
+
+/* ---------- formularios ---------- */
+.grid{display:flex;flex-wrap:wrap;gap:12px}
+.grid>div{flex:1 1 210px;min-width:0}
+label{display:block;font-size:12.5px;color:var(--mut);margin-bottom:5px;font-weight:500}
+input,select{width:100%;padding:9px 11px;border:1px solid var(--bd);border-radius:9px;
+  background:#fff;font:inherit;font-size:14px;color:var(--tx);max-width:100%}
+input:focus,select:focus{outline:2px solid var(--v300);outline-offset:1px;border-color:var(--v400)}
+input[type=file]{padding:8px;background:var(--v50);border-style:dashed;border-color:var(--v150);cursor:pointer;font-size:13px}
+input[type=file]:hover{background:var(--v100)}
+.row{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-top:12px}
+button{background:var(--v600);color:#fff;border:0;border-radius:9px;padding:10px 17px;
+  font:600 14px inherit;cursor:pointer;transition:background .15s}
+button:hover:not(:disabled){background:var(--v500)}
+button.sec{background:#fff;color:var(--v600);border:1.5px solid var(--v150)}
+button.sec:hover:not(:disabled){background:var(--v50);border-color:var(--v400)}
+button:disabled{opacity:.42;cursor:not-allowed}
+.hint{font-size:12.5px;color:var(--mut);margin:9px 0 0;line-height:1.5}
+.hint code{background:var(--v50);border:1px solid var(--bd);border-radius:4px;padding:1px 5px;font-size:11.5px}
+.bar{height:6px;background:var(--v100);border-radius:3px;overflow:hidden;margin-top:11px}
+.bar>i{display:block;height:100%;width:0;background:var(--v500);transition:width .2s}
+.ou{font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.06em;margin:14px 0 2px}
+details.avancado{margin-top:14px;border-top:1px dashed var(--bd);padding-top:12px}
+details.avancado summary{cursor:pointer;font-size:12.5px;color:var(--mut);list-style:none;font-weight:500}
+details.avancado summary::-webkit-details-marker{display:none}
+details.avancado summary::before{content:'\25B8 ';color:var(--v400)}
+details.avancado[open] summary::before{content:'\25BE '}
+details.avancado>div{margin-top:12px}
+.fonte{display:flex;align-items:center;gap:11px;background:var(--v50);border:1px solid var(--v150);
+  border-radius:11px;padding:12px 15px;margin-top:4px}
+.fonte .fi{flex:0 0 auto;width:9px;height:9px;border-radius:50%;background:var(--v400)}
+.fonte.vazio{background:var(--bg);border-color:var(--bd)}
+.fonte.vazio .fi{background:#C7D2CB}
+.fonte b{font-size:14px;font-weight:600;display:block}
+.fonte span{font-size:12.5px;color:var(--mut)}
+.acao-ia{background:#FCF7EC;border:1px solid #F0DDB8;border-radius:12px;padding:14px 16px;
+  margin-bottom:14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.acao-ia div{flex:1 1 260px}
+.acao-ia b{font-size:14.5px;display:block}
+.acao-ia span{font-size:12.5px;color:var(--mut)}
+
+/* ---------- aviso de fontes ---------- */
+#alerta{background:var(--card);border:1px solid var(--bd);border-left:4px solid var(--v400);
+  border-radius:14px;padding:15px 18px;margin-bottom:18px;box-shadow:var(--sh)}
+#alertaTxt{font-weight:650;font-size:14.5px}
+#alertaSub{font-size:12.5px;color:var(--mut);margin-top:7px;line-height:1.55}
+
+/* ---------- barra de acao ---------- */
+.acoes{position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.97);
+  border-top:1px solid var(--bd);box-shadow:0 -4px 18px rgba(8,37,28,.07);z-index:40;
+  padding:12px 0 calc(12px + env(safe-area-inset-bottom,0px));backdrop-filter:blur(8px)}
+.acoes .wrap{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.acoes #btRun{padding:12px 26px;font-size:15px}
+#faltaTxt{font-size:12.5px;color:var(--mut);flex:1 1 200px;min-width:0}
+
+/* ---------- resultados ---------- */
+.res{margin-top:26px}
+.res h2{font-size:19px;margin:0 0 14px;font-weight:650}
+.painel{display:grid;grid-template-columns:repeat(auto-fit,minmax(152px,1fr));gap:12px;margin-bottom:18px}
+.box{background:var(--card);border:1px solid var(--bd);border-top:3px solid var(--v400);
+  border-radius:12px;padding:14px 16px;box-shadow:var(--sh)}
+.box{cursor:pointer;transition:box-shadow .15s,transform .1s;position:relative;user-select:none}
+.box:hover{box-shadow:0 2px 6px rgba(8,37,28,.10),0 8px 20px rgba(8,37,28,.10);transform:translateY(-1px)}
+.box:active{transform:translateY(0)}
+.box.inerte{cursor:default}
+.box.inerte:hover{box-shadow:var(--sh);transform:none}
+.box.ativo{outline:2px solid var(--v500);outline-offset:1px}
+.box.ativo::after{content:'filtrando';position:absolute;top:8px;right:10px;font-size:10px;
+  font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--v600)}
+.box b{display:block;font-size:27px;line-height:1.1;font-weight:680;letter-spacing:-.02em}
+.box span{font-size:12px;color:var(--mut);display:block;margin-top:3px}
+.b-ok{border-top-color:var(--ok)}.b-ok b{color:var(--ok)}
+.b-warn{border-top-color:#C98A2E}.b-warn b{color:var(--warn)}
+.b-baixa{border-top-color:#C9B02E}.b-baixa b{color:var(--baixa)}
+.b-err{border-top-color:#C4463A}.b-err b{color:var(--err)}
+.b-pri{border-top-color:var(--v600)}.b-pri b{color:var(--v700)}
+.tbwrap{border:1px solid var(--bd);border-radius:12px;background:#fff;overflow:auto;max-height:62vh;box-shadow:var(--sh)}
+table{border-collapse:separate;border-spacing:0;width:100%;font-size:13px;min-width:860px}
+th{position:sticky;top:0;background:var(--v700);color:#fff;text-align:left;padding:10px 12px;
+  font-weight:600;font-size:12.5px;white-space:nowrap;z-index:1}
+td{padding:9px 12px;border-top:1px solid #EDF2EF;vertical-align:top}
+tbody tr:hover td{background:var(--v50)}
+.tag{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11.5px;font-weight:600;white-space:nowrap}
+.t-ok{background:var(--v100);color:var(--ok)}
+.t-warn{background:#FCF0DC;color:var(--warn)}
+.t-baixa{background:#FBF6D5;color:var(--baixa)}
+.t-err{background:#FBE7E4;color:var(--err)}
+.t-mut{background:#EEF2F0;color:var(--mut)}
+.niv{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;
+  border-radius:7px;font-weight:700;font-size:12px;color:#fff}
+.n-A{background:var(--ok)}.n-B{background:var(--v500)}.n-C{background:#C98A2E}.n-D{background:#C4463A}
+.n-NA{background:#5E7268;font-size:10px}
+.n-SB{background:#7A6100;font-size:10px}
+.t-na{background:#E7EDEA;color:#46564E;border:1px dashed #B9C7C0}
+.legenda{display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--mut);margin:12px 0 0}
+.legenda span{display:inline-flex;align-items:center;gap:6px}
+
+/* ---------- modal ---------- */
+#modal{position:fixed;inset:0;background:rgba(8,37,28,.45);display:flex;align-items:center;
+  justify-content:center;padding:18px;z-index:60}
+#modalCx{background:#fff;border-radius:16px;max-width:660px;width:100%;max-height:86vh;overflow:auto;
+  padding:22px 24px;box-shadow:0 18px 48px rgba(8,37,28,.25)}
+#modalCx h3{margin:0 0 4px;font-size:17px;color:var(--v700);font-weight:650}
+#modalCx .msub{color:var(--mut);font-size:12.5px;margin:0 0 16px}
+#modalCx dl{display:grid;grid-template-columns:200px 1fr;gap:0;margin:0;font-size:13.5px;
+  border:1px solid var(--bd);border-radius:10px;overflow:hidden}
+#modalCx dt{color:var(--mut);background:var(--v50);padding:8px 12px;border-bottom:1px solid var(--bd);font-size:12.5px}
+#modalCx dd{margin:0;padding:8px 12px;border-bottom:1px solid var(--bd);word-break:break-word}
+
+/* ---------- log ---------- */
+details.logbox{margin-top:20px;background:var(--card);border:1px solid var(--bd);border-radius:12px;overflow:hidden}
+details.logbox summary{padding:12px 16px;cursor:pointer;font-size:13.5px;font-weight:600;color:var(--v700);
+  background:var(--v50);list-style:none}
+details.logbox summary::-webkit-details-marker{display:none}
+details.logbox summary::before{content:'\25B8 ';color:var(--v400)}
+details.logbox[open] summary::before{content:'\25BE '}
+.log{font:12px ui-monospace,Menlo,Consolas,monospace;background:var(--v900);color:#BFE3CE;
+  padding:14px 16px;max-height:210px;overflow:auto;white-space:pre-wrap;margin:0}
+
+[hidden]{display:none!important}
+@media (max-width:760px){
+  .explica{grid-template-columns:1fr}
+  header h1{font-size:21px}
+  .st-status{max-width:100%;order:3;margin-left:43px}
+  .st-head{flex-wrap:wrap}
+  #modalCx dl{grid-template-columns:1fr}
+  #modalCx dt{border-bottom:0;padding-bottom:2px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <h1>Prova ANVISA - Reforma Tributaria</h1>
+    <p>Confere se cada produto esta regularizado na ANVISA e se tem direito ao beneficio da LC 214/2025, e monta a prova documental de cada resposta.</p>
+    <div class="chips" id="chips"></div>
+    <div style="margin-top:10px;font-size:11.5px;color:var(--v300)">versao <span id="verApp"></span></div>
+  </div>
+</header>
+
+<div class="wrap">
+
+<div class="explica">
+  <div class="etapa">
+    <b>Etapa A</b>
+    <h3>O produto esta regularizado?</h3>
+    <p>Procura o produto na ANVISA: no arquivo da nota fiscal, na lista oficial da agencia e nas conferencias que a equipe ja fez.</p>
+  </div>
+  <div class="etapa">
+    <b>Etapa B</b>
+    <h3>O produto tem direito ao beneficio?</h3>
+    <p>Confere se a NCM e a descricao do produto batem com um item dos anexos da LC 214 que reduzem ou zeram o imposto.</p>
+  </div>
+  <div class="etapa mais">
+    <p><b>Por que separar?</b> Um produto pode estar perfeitamente regular na ANVISA e mesmo assim nao ter direito ao beneficio, porque nao consta dos anexos da lei. E pode constar do anexo e perder o beneficio por falta de regularizacao. Sao duas perguntas diferentes e a ferramenta responde as duas.</p>
+  </div>
+</div>
+
+<div id="alerta" hidden><b id="alertaTxt"></b><div id="alertaSub"></div></div>
+
+<!-- PASSO 1 -->
+<section class="passo" id="passo1">
+  <div class="st-head">
+    <div class="st-num"><span>1</span></div>
+    <div class="st-txt"><h2>De onde vem os produtos</h2>
+      <p>As planilhas que voce quer analisar. Pode mandar varias de uma vez.</p></div>
+    <div class="st-status">pendente</div>
+  </div>
+  <div class="grid">
+    <div><label>Escolher os arquivos (CSV, XLS ou XLSX)</label><input type="file" id="fCsv" accept=".csv,.txt,.xls,.xlsx" multiple></div>
+    <div><label>ou uma pasta inteira do computador</label><input type="file" id="fPasta" webkitdirectory directory multiple></div>
+  </div>
+  <p class="ou">ou uma pasta do Google Drive</p>
+  <div class="row" style="margin-top:4px">
+    <input type="text" id="pastaDrive" placeholder="link, ID ou nome da pasta do Drive (aceita CSV, XLS e planilhas)" style="flex:1 1 300px">
+    <button class="sec" id="btDrive">Procurar planilhas</button>
+    <button class="sec" id="btDriveLer" hidden>Importar todas</button>
+  </div>
+  <p class="hint" id="csvInfo"></p>
+  <div class="grid" id="mapCols" hidden style="margin-top:14px">
+    <div><label>Coluna da NCM</label><select id="cNcm"></select></div>
+    <div><label>Coluna do codigo (opcional)</label><select id="cCod"></select></div>
+    <div><label>Coluna da descricao</label><select id="cProd"></select></div>
+    <div><label>Situacao (opcional)</label><select id="cSit"></select></div>
+    <div><label>Anexo da LC 214</label><select id="cAnexo"></select></div>
+    <div><label>Item do anexo</label><select id="cItem"></select></div>
+    <div><label>Beneficio</label><select id="cBenef"></select></div>
+    <div><label>Quantidade (opcional)</label><select id="cQtde"></select></div>
+    <div><label>Valor em R$ (opcional)</label><select id="cValor"></select></div>
+  </div>
+  <p class="hint">A ferramenta descobre sozinha o separador e a acentuacao do arquivo, e localiza as colunas pelo nome do cabecalho - entao planilhas com colunas em ordem diferente rodam juntas. Confira o que ela escolheu acima e corrija se precisar.</p>
+</section>
+
+<!-- PASSO 2 -->
+<section class="passo" id="passo2">
+  <div class="st-head">
+    <div class="st-num"><span>2</span></div>
+    <div class="st-txt"><h2>Notas fiscais de entrada</h2>
+      <p>A prova mais forte que existe: o numero de registro vem escrito dentro do arquivo da nota.</p></div>
+    <div class="st-status">pendente</div>
+  </div>
+  <div class="grid"><div><label>Arquivos XML ou o ZIP baixado do SIEG</label>
+    <input type="file" id="fXml" accept=".xml,.zip" multiple></div></div>
+  <div class="bar" id="barWrap" hidden><i id="bar"></i></div>
+  <p class="hint">Vale para remedios: a lei obriga a nota a trazer o registro na ANVISA. Material medico (gaze, seringa, cama hospitalar) nao tem essa obrigacao, entao para esses a prova vem do passo 3.</p>
+</section>
+
+<!-- PASSO 3 -->
+<section class="passo" id="passo3">
+  <div class="st-head">
+    <div class="st-num"><span>3</span></div>
+    <div class="st-txt"><h2>Lista oficial da ANVISA</h2>
+      <p>Baixa sozinha na primeira vez, fica guardada na planilha e se atualiza todo mes. Voce nao precisa fazer nada.</p></div>
+    <div class="st-status">verificando...</div>
+  </div>
+  <div class="fonte vazio" id="fonteAnvisa"><i class="fi"></i>
+    <div><b id="baseInfo">Verificando a lista...</b>
+      <span id="baseSub">A lista tem os produtos regularizados na ANVISA e e o que permite comprovar material medico.</span></div>
+    <button class="sec" id="btAuto" style="padding:7px 13px;font-size:13px">Baixar de novo</button>
+  </div>
+  <div class="bar" id="barBaseWrap" hidden><i id="barBase"></i></div>
+
+  <div id="escolhaArq" hidden style="margin-top:14px">
+    <label>Escolha o arquivo na lista do site da ANVISA:</label>
+    <div class="row" style="margin-top:4px">
+      <select id="selArq" style="flex:1 1 320px"></select>
+      <button class="sec" id="btBaixar">Baixar este</button>
+    </div>
+  </div>
+
+  <details class="avancado">
+    <summary>Se a carga automatica falhar</summary>
+    <div class="grid">
+      <div><label>Enviar um arquivo do computador</label><input type="file" id="fBase" accept=".csv,.txt"></div>
+      <div><label>Usar a que ja esta na planilha</label>
+        <button class="sec" id="btAba" style="width:100%">Carregar da aba BASE_ANVISA</button></div>
+      <div><label>Endereco do arquivo</label>
+        <input type="text" id="urlBase" placeholder="https://dados.anvisa.gov.br/dados/..."></div>
+      <div style="flex:0 0 auto;align-self:flex-end"><button class="sec" id="btListar">Listar tudo</button></div>
+      <div><label>Rigor na comparacao de nomes</label><input type="number" id="limiar" value="0.72" min="0.5" max="1" step="0.01"></div>
+    </div>
+  </details>
+</section>
+
+<!-- PASSO 4 -->
+<section class="passo" id="passo4">
+  <div class="st-head">
+    <div class="st-num"><span>4</span></div>
+    <div class="st-txt"><h2>Dados do estudo</h2>
+      <p>Aparecem no relatorio final, para quem revisar saber de onde veio cada informacao.</p></div>
+    <div class="st-status">opcional</div>
+  </div>
+  <div class="grid">
+    <div><label>Empresa</label><input type="text" id="empresa" placeholder="EMPRESA EXEMPLO 1 LTDA"></div>
+    <div><label>CNPJ</label><input type="text" id="cnpjCli"></div>
+    <div><label>Periodo analisado</label><input type="text" id="periodo" placeholder="01/01/2026 a 31/07/2026"></div>
+    <div><label>Data dos anexos da LC 214 que voce usou</label><input type="date" id="verAnexos"></div>
+    <div><label>Aliquota de referencia IBS+CBS (%)</label><input type="number" id="aliqRef" value="26.5" min="0" max="40" step="0.1"></div>
+    <div><label>Carga tributaria atual sobre a receita (%)</label><input type="number" id="cargaHoje" value="9.25" min="0" max="40" step="0.01"></div>
+  </div>
+  <p class="hint">A aliquota de referencia de 26,5% e a trava do art. 348 da LC 214/2025 - troque pelo percentual que o estudo adotar. A carga atual vem preenchida com PIS/COFINS no regime nao cumulativo (9,25%); some o ICMS efetivo da empresa se o estudo considerar. Os dois percentuais alimentam o painel de valores e o relatorio do cliente.</p>
+  <p class="hint">A lista da ANVISA e atualizada o tempo todo e nao tem validade legal. Ja os anexos da LC 214 podem ser revistos a cada 120 dias (art. 131, §2o) - por isso a data fica registrada no relatorio.</p>
+
+  <p class="ou">Fontes carregadas automaticamente</p>
+  <div class="fonte vazio" id="fonteManual"><i class="fi"></i>
+    <div><b id="manualInfo">Conferencias anteriores</b>
+      <span>Tudo que a equipe ja confirmou na mao volta sozinho e nunca precisa ser refeito.</span></div>
+    <button class="sec" id="btManual" style="padding:7px 13px;font-size:13px">Atualizar</button>
+  </div>
+  <div class="fonte vazio" id="fonteLC" style="margin-top:9px"><i class="fi"></i>
+    <div><b id="lcInfo">Anexos da LC 214</b>
+      <span>Relacao de NCM, item e anexo que define quem tem direito ao beneficio.</span></div>
+    <button class="sec" id="btLC" style="padding:7px 13px;font-size:13px">Atualizar</button>
+  </div>
+
+  <details class="avancado">
+    <summary>Opcoes avancadas</summary>
+    <div class="grid">
+      <div><label>Ato de referencia dos anexos</label><input type="text" id="atoAnexos" placeholder="LC 227/2026"></div>
+      <div style="flex:0 0 auto;align-self:flex-end"><button class="sec" id="btVer">Registrar versao</button></div>
+      <div><label>Recriar as abas de apoio</label><button class="sec" id="btPrep" style="width:100%">Criar abas</button></div>
+      <div><label>Modelo de IA</label><select id="modelo"></select></div>
+      <div style="flex:0 0 auto;align-self:flex-end"><button class="sec" id="btModelos">Conferir modelos</button></div>
+      <div><label>Confianca minima da IA</label><input type="number" id="confMin" value="0.85" min="0.5" max="1" step="0.05"></div>
+      <div><label>Detalhes que a IA deve confirmar</label><input type="number" id="atrMin" value="2" min="1" max="5" step="1"></div>
+      <div style="flex:1 1 100%"><label style="display:flex;gap:8px;align-items:flex-start;font-weight:400">
+        <input type="checkbox" id="otimista" style="width:16px;height:16px;margin-top:3px;accent-color:var(--v600)">
+        <span>Cenario otimista: contar como enquadrado tambem o que o teste duplo nao sustenta.
+        Serve para medir quanto esta em jogo - nao use para entregar ao cliente.</span></label></div>
+    </div>
+  </details>
+</section>
+
+<!-- RESULTADOS -->
+<section class="res" id="res" hidden>
+  <h2>Resultado</h2>
+  <div class="painel" id="painel"></div>
+  <div id="avisoProva" hidden style="margin-top:14px;background:#FFF6E2;border:1px solid #F0DCA8;
+    color:#8A5A00;border-radius:11px;padding:13px 16px;font-size:13px;line-height:1.6"></div>
+  <div id="blocoValor" hidden>
+    <h3 style="margin:22px 0 10px;font-size:16px">Impacto tributario</h3>
+    <div class="painel" id="painelValor"></div>
+    <div class="tbwrap" style="margin-top:12px"><table id="tbSeg"></table></div>
+    <p class="hint" id="valorNota"></p>
+  </div>
+  <div class="acao-ia" id="blocoIA" hidden>
+    <div><b id="iaTitulo">Sobraram produtos sem confirmacao</b>
+      <span id="iaInfo">A inteligencia artificial compara cada um com a lista oficial da ANVISA e confirma o que for o mesmo produto.</span></div>
+    <button id="btIA" disabled>Resolver com a IA</button>
+  </div>
+  <div class="bar" id="barIAWrap" hidden><i id="barIA"></i></div>
+  <div class="row" style="margin:0 0 12px">
+    <select id="filtro" style="width:auto;flex:0 1 300px"><option value="">Todos</option></select>
+    <span class="hint" id="contFiltro" style="margin:0;flex:1 1 200px"></span>
+    <button class="sec" id="btCsv" disabled>Baixar planilha do resultado</button>
+    <button class="sec" id="btCsvAud" disabled>Baixar planilha completa (auditoria)</button>
+    <button class="sec" id="btEnxuta" disabled>Baixar lista de produtos (leve)</button>
+    <button class="sec" id="btSheet" disabled>Gravar nas abas da planilha</button>
+    <button id="btRelCli" disabled>Relatorio para o cliente</button>
+    <button class="sec" id="btRel" disabled>Gerar relatorio da prova</button>
+  </div>
+  <div class="tbwrap" id="tbwrap" hidden><table id="tb"></table></div>
+  <div class="legenda">
+    <span><i class="niv n-A">A</i> prova direta</span>
+    <span><i class="niv n-B">B</i> prova cruzada</span>
+    <span><i class="niv n-C">C</i> confirmada pela IA</span>
+    <span><i class="niv n-D">D</i> pendente - nao vale como prova</span>
+    <span><i class="niv n-NA">NA</i> ANVISA nao exigida pelo anexo</span>
+    <span><i class="niv n-SB">SB</i> consulta esgotada - produto nao consta na Anvisa</span>
+    <span style="color:var(--warn)"><b>A conferir</b> = a NCM consta do anexo, a descricao nao corresponde</span>
+  </div>
+</section>
+
+<details class="logbox"><summary>Registro do que a ferramenta fez</summary>
+  <div class="log" id="log">aguardando os arquivos do passo 1...</div>
+</details>
+
+</div><!-- /wrap -->
+
+<div class="acoes"><div class="wrap">
+  <button id="btRun" disabled>Analisar produtos</button>
+  <span id="faltaTxt">Comece carregando as planilhas do passo 1.</span>
+</div></div>
+
+<div id="modal" hidden><div id="modalCx">
+  <h3 id="mdTitulo"></h3>
+  <p class="msub">Toda a trilha de evidencia desta linha.</p>
+  <dl id="mdCorpo"></dl>
+  <div class="row"><button class="sec" onclick="document.getElementById('modal').hidden=true">Fechar</button></div>
+</div></div>
+
+<script>
+/* ===================== utilitarios ===================== */
+var VERSAO_APP='2026-09-18a';   /* aparece no cabecalho: confirma qual versao esta no ar */
+var LOG=document.getElementById('log');
+function log(m){LOG.textContent+='\n'+m;LOG.scrollTop=LOG.scrollHeight;}
+function erro(m){log('[ERRO] '+m);}
+function norm(s){return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9 ]+/g,' ').replace(/\s+/g,' ').trim();}
+var STOP={DE:1,DA:1,DO:1,COM:1,PARA:1,EM:1,UN:1,CX:1,PC:1,UND:1,UNID:1};
+/* Radical simples de plural. Sem isso "SERINGA" nao casa com "Seringas" e o
+   teste duplo reprovaria um item que a lei claramente cobre. */
+function radical(t){
+  if(t.length>4&&/OES$/.test(t))return t.slice(0,-3)+'AO';
+  if(t.length>4&&/AIS$/.test(t))return t.slice(0,-3)+'AL';
+  if(t.length>4&&/(NS)$/.test(t))return t.slice(0,-2)+'M';
+  if(t.length>3&&/(RES|SES|ZES|LES)$/.test(t))return t.slice(0,-2);
+  if(t.length>3&&/S$/.test(t)&&!/SS$/.test(t))return t.slice(0,-1);
+  return t;}
+function tokens(s){return norm(s).split(' ')
+  .filter(function(t){return t.length>1&&!STOP[t];}).map(radical);}
+function sim(a,b){if(!a.length||!b.length)return 0;var set={},i,inter=0,v={};
+  for(i=0;i<b.length;i++)set[b[i]]=1;
+  for(i=0;i<a.length;i++){var t=a[i];if(set[t]&&!v[t]){inter++;v[t]=1;}}
+  return 2*inter/(a.length+b.length);}
+function soDigito(s){return String(s||'').replace(/\D+/g,'');}
+function ehGtin(s){var d=soDigito(s);return d.length===8||d.length===12||d.length===13||d.length===14;}
+function gtinNorm(s){var d=soDigito(s);return d?d.replace(/^0+/,''):'';}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+
+function construirIndice(lista){var idx={};for(var i=0;i<lista.length;i++){var t=lista[i].tok,v={};
+  for(var j=0;j<t.length;j++){if(v[t[j]])continue;v[t[j]]=1;(idx[t[j]]||(idx[t[j]]=[])).push(i);}}return idx;}
+
+function coletarCandidatos(tk,idx){
+  var postings=[],v={},k;
+  for(k=0;k<tk.length;k++){if(v[tk[k]])continue;v[tk[k]]=1;if(idx[tk[k]])postings.push(idx[tk[k]]);}
+  if(!postings.length)return{cand:{},usados:0};
+  postings.sort(function(a,b){return a.length-b.length;});
+  var cand={},usados=0,total=0;
+  for(k=0;k<postings.length;k++){
+    if(usados>=2&&total+postings[k].length>30000)break;
+    for(var i=0;i<postings[k].length;i++)cand[postings[k][i]]=(cand[postings[k][i]]||0)+1;
+    total+=postings[k].length;usados++;}
+  return{cand:cand,usados:usados};
+}
+function melhorMatch(tk,lista,idx,limiar,filtroCnpj){
+  if(!tk.length)return null;
+  var c=coletarCandidatos(tk,idx);if(!c.usados)return null;
+  var exigeDois=(c.usados>=2&&tk.length>2),melhor=null,ms=0,cnpjBateu=false;
+  for(var key in c.cand){
+    if(exigeDois&&c.cand[key]<2)continue;
+    var r=lista[key];
+    if(filtroCnpj&&r.cnpj&&r.cnpj!==filtroCnpj)continue;
+    var s=sim(tk,r.tok);
+    if(s>ms){ms=s;melhor=r;cnpjBateu=!!(filtroCnpj&&r.cnpj&&r.cnpj===filtroCnpj);}}
+  return (melhor&&ms>=limiar)?{item:melhor,score:ms,cnpjBateu:cnpjBateu}:null;
+}
+function topCandidatos(tk,lista,idx,n){
+  if(!tk.length)return[];
+  var c=coletarCandidatos(tk,idx);if(!c.usados)return[];
+  var arr=[];for(var key in c.cand)arr.push({idx:+key,item:lista[key],score:sim(tk,lista[key].tok)});
+  arr.sort(function(a,b){return b.score-a.score;});
+  return arr.slice(0,n).filter(function(x){return x.score>0.25;});
+}
+
+/* ===================== CSV ===================== */
+function detectarSep(t){var l=t.split(/\r?\n/).slice(0,10).join('\n');
+  var c={';':(l.match(/;/g)||[]).length,',':(l.match(/,/g)||[]).length,'\t':(l.match(/\t/g)||[]).length};
+  return c[';']>=c[',']?(c[';']>=c['\t']?';':'\t'):(c[',']>=c['\t']?',':'\t');}
+function parseCsv(txt,sep){
+  if(txt.charCodeAt(0)===0xFEFF)txt=txt.slice(1);
+  var out=[],linha=[],campo='',aspas=false,i=0;
+  while(i<txt.length){var ch=txt[i];
+    if(aspas){if(ch==='"'){if(txt[i+1]==='"'){campo+='"';i+=2;continue;}aspas=false;i++;continue;}campo+=ch;i++;continue;}
+    if(ch==='"'){aspas=true;i++;continue;}
+    if(ch===sep){linha.push(campo);campo='';i++;continue;}
+    if(ch==='\n'){linha.push(campo);out.push(linha);linha=[];campo='';i++;continue;}
+    if(ch==='\r'){i++;continue;}
+    campo+=ch;i++;}
+  if(campo!==''||linha.length){linha.push(campo);out.push(linha);}
+  return out.filter(function(l){return l.some(function(c){return String(c).trim()!=='';});});}
+function acharCabecalho(m){for(var i=0;i<Math.min(m.length,25);i++)for(var j=0;j<m[i].length;j++)if(norm(m[i][j])==='NCM')return i;return 0;}
+
+/* ===================== XML NF-e ===================== */
+function filhos(el,n){var r=[];if(!el)return r;var c=el.children;for(var i=0;i<c.length;i++)if(c[i].localName===n)r.push(c[i]);return r;}
+function txt(el,n){var f=filhos(el,n);return f.length?String(f[0].textContent).trim():'';}
+function todos(doc,n){var r=[],c=doc.getElementsByTagName('*');for(var i=0;i<c.length;i++)if(c[i].localName===n)r.push(c[i]);return r;}
+function lerXml(texto,arq){
+  var itens=[],doc;
+  try{doc=new DOMParser().parseFromString(texto,'text/xml');}catch(e){return itens;}
+  if(doc.getElementsByTagName('parsererror').length){erro('XML invalido: '+arq);return itens;}
+  var emits=todos(doc,'emit'),ides=todos(doc,'ide');
+  var cnpjEmit=emits.length?soDigito(txt(emits[0],'CNPJ')):'';
+  var nomeEmit=emits.length?txt(emits[0],'xNome'):'';
+  var nNF=ides.length?txt(ides[0],'nNF'):'';
+  var dets=todos(doc,'det');
+  for(var i=0;i<dets.length;i++){
+    var ps=filhos(dets[i],'prod');if(!ps.length)continue;
+    var p=ps[0],meds=filhos(p,'med'),reg='',isen='';
+    if(meds.length){reg=txt(meds[0],'cProdANVISA');isen=txt(meds[0],'xMotivoIsencao');}
+    itens.push({cProd:txt(p,'cProd'),gtin:gtinNorm(txt(p,'cEAN'))||gtinNorm(txt(p,'cEANTrib')),
+      xProd:txt(p,'xProd'),ncm:soDigito(txt(p,'NCM')),registro:reg,isencao:isen,
+      cnpjForn:cnpjEmit,nomeForn:nomeEmit,nf:nNF,arq:arq});}
+  return itens;}
+
+/* ===================== estado ===================== */
+var ST={arquivos:[],cab:[],linhas:[],xml:[],base:[],manual:[],lc214:{},resultado:[],
+        meta:{arquivoProdutos:'',qtdXml:0,arquivoBase:'',dataBase:'',hashBase:'',usouIA:false,modelo:''}};
+
+/* Chama a atencao para o caminho do Drive quando o arquivo e grande demais. */
+function destacarDrive(){
+  var el=document.getElementById('pastaDrive');
+  if(!el)return;
+  el.style.borderColor='var(--v400)';el.style.background='var(--v50)';
+  try{el.focus();el.scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}}
+
+/* Relatorio de sistema contabil vem cheio de coluna vazia por causa de celula
+   mesclada: no arquivo do Dominio sao 55 colunas para ~20 com dado. Jogar as
+   vazias fora aqui deixa tudo mais leve daqui para a frente. */
+function enxugar(m){
+  var largura=0,i,j;
+  for(i=0;i<m.length;i++)if(m[i]&&m[i].length>largura)largura=m[i].length;
+  var usada=[];
+  for(i=0;i<largura;i++)usada.push(false);
+  for(i=0;i<m.length;i++){
+    var l=m[i];if(!l)continue;
+    for(j=0;j<largura;j++)if(String(l[j]==null?'':l[j]).trim()!=='')usada[j]=true;}
+  var cols=[];
+  for(i=0;i<largura;i++)if(usada[i])cols.push(i);
+  if(cols.length===largura)return m;
+  var saida=[];
+  for(i=0;i<m.length;i++){
+    var l2=m[i];if(!l2)continue;
+    var nova=[];
+    for(j=0;j<cols.length;j++)nova.push(l2[cols[j]]==null?'':l2[cols[j]]);
+    saida.push(nova);}
+  return saida;}
+
+/* ---------- CSV em lote ---------- */
+function registrarArquivo(nome,texto){
+  registrarMatriz(nome,parseCsv(texto,detectarSep(texto)));}
+
+function registrarMatriz(nome,m){
+  if(!m||!m.length){log('sem linhas, ignorado: '+nome);return;}
+  m=enxugar(m);
+  var ic=acharCabecalho(m);
+  if(!m[ic]){log('nao achei cabecalho em '+nome);return;}
+  var cab=m[ic].map(function(c){return String(c).trim();});
+  var linhas=m.slice(ic+1);
+  if(!linhas.length){log('vazio, ignorado: '+nome);return;}
+  ST.arquivos.push({nome:nome,cab:cab,linhas:linhas});
+}
+function fecharLote(){
+  try{fecharLote_();}catch(e){erro('ao fechar o lote: '+e);}
+  avaliarBotoes();   /* aconteca o que acontecer, o estado do botao e recalculado */
+}
+function fecharLote_(){
+  if(!ST.arquivos.length){erro('nenhum arquivo do lote pode ser lido. Veja as mensagens acima.');return;}
+  var vistos={},uniao=[];
+  ST.arquivos.forEach(function(a){a.cab.forEach(function(c){
+    var n=norm(c);if(!n||vistos[n])return;vistos[n]=1;uniao.push(c);});});
+  ST.cab=uniao;
+  ST.meta.arquivoProdutos=ST.arquivos.length===1?ST.arquivos[0].nome:(ST.arquivos.length+' arquivos');
+  montarSelects();
+  var total=ST.arquivos.reduce(function(a,b){return a+b.linhas.length;},0);
+  document.getElementById('csvInfo').innerHTML='<b>'+ST.arquivos.length+' arquivo(s) | '+total+' linhas</b><br>'+
+    ST.arquivos.map(function(a){return esc(a.nome)+' ('+a.linhas.length+')';}).join(' &middot; ');
+  log('Lote: '+ST.arquivos.length+' arquivo(s), '+total+' linhas.');
+  marcarPasso(1,true,ST.arquivos.length+' arquivo(s) - '+total+' linhas');
+}
+/* O .xls do Dominio vem em BIFF antigo e mal formado: o leitor do navegador
+   devolve zero linhas. Nesse caso o arquivo sobe para o servidor, que usa o
+   conversor do Drive - o mesmo que o Google usa ao abrir um .xls. */
+function planilhaParaLinhas(f,cb){
+  function naoVazias(m){return (m||[]).filter(function(l){
+    return l&&l.some&&l.some(function(c){return String(c==null?'':c).trim()!=='';});});}
+
+  var LIMITE=6*1024*1024;
+  function viaServidor(motivo){
+    if(f.size&&f.size>LIMITE){
+      cb(null,'o arquivo tem '+(f.size/1048576).toFixed(1)+' MB e o navegador trava ao envia-lo. '+
+              'Coloque o arquivo numa pasta do Google Drive e use o campo "link, ID ou nome da pasta" logo abaixo - '+
+              'assim a leitura roda inteira no servidor.');
+      destacarDrive();return;}
+    log('"'+f.name+'": '+motivo+'. Convertendo pelo Google Drive (pode levar 1 a 2 minutos)...');
+    var fr=new FileReader();
+    fr.onload=function(){
+      var b64=String(fr.result).split(',')[1]||'';
+      google.script.run.withSuccessHandler(function(r){
+        if(!r.ok){cb(null,r.erro);return;}
+        var m=naoVazias(r.linhas);
+        if(!m.length){cb(null,'a planilha convertida veio vazia');return;}
+        log('"'+f.name+'": '+m.length+' linhas apos a conversao.');
+        cb(m);
+      }).withFailureHandler(function(e){
+        cb(null,'a conversao falhou ('+String(e).slice(0,90)+'). Salve como CSV ou XLSX e tente de novo.');
+      }).converterPlanilhaEnviada(b64,f.name,f.type||'application/vnd.ms-excel');};
+    fr.onerror=function(){cb(null,'nao consegui ler o arquivo');};
+    fr.readAsDataURL(f);}
+
+  if(typeof XLSX==='undefined'){viaServidor('o leitor do navegador nao carregou');return;}
+  var fr=new FileReader();
+  fr.onload=function(){
+    var m=[];
+    try{
+      var wb=XLSX.read(new Uint8Array(fr.result),{type:'array'});
+      var ws=wb.Sheets[wb.SheetNames[0]];
+      m=naoVazias(XLSX.utils.sheet_to_json(ws,{header:1,raw:false,defval:''}));
+    }catch(e){m=[];}
+    if(m.length)cb(m); else viaServidor('o navegador nao conseguiu abrir este formato');};
+  fr.onerror=function(){cb(null,'nao consegui ler o arquivo');};
+  fr.readAsArrayBuffer(f);}
+
+function lerArquivosLocais(arqs){
+  arqs=arqs.filter(function(f){return /\.(csv|txt|xls|xlsx)$/i.test(f.name);});
+  if(!arqs.length){erro('nenhum arquivo CSV, XLS ou XLSX na selecao.');return;}
+  ST.arquivos=[];
+  var feito=0;
+  var bw=document.getElementById('barWrap'),bb=document.getElementById('bar');
+  arqs.forEach(function(f){
+    if(/\.(xls|xlsx)$/i.test(f.name)){
+      planilhaParaLinhas(f,function(m,err){
+        if(err)erro('falha em '+f.name+': '+err);
+        else{try{registrarMatriz(f.name,m);}catch(e){erro(f.name+': '+e);}}
+        if(++feito===arqs.length)fecharLote();});
+      return;}
+    lerTexto(f,function(txt,err){
+      if(err)erro('falha em '+f.name+': '+err);
+      else{try{registrarArquivo(f.name,txt);}catch(e){erro(f.name+': '+e);}}
+      if(++feito===arqs.length)fecharLote();});});
+}
+
+/* Le sempre em UTF-8. Se aparecer caractere invalido, refaz em Windows-1252.
+   O usuario nao precisa saber o que e codificacao. */
+function lerTexto(f,cb){
+  var fr=new FileReader();
+  fr.onload=function(){
+    var t=fr.result;
+    if(t.indexOf('\uFFFD')<0){cb(t);return;}
+    var fr2=new FileReader();
+    fr2.onload=function(){cb(fr2.result);};
+    fr2.onerror=function(){cb(t);};
+    fr2.readAsText(f,'windows-1252');};
+  fr.onerror=function(){cb(null,'nao consegui abrir o arquivo');};
+  fr.readAsText(f,'utf-8');}
+document.getElementById('fCsv').addEventListener('change',function(ev){
+  lerArquivosLocais(Array.prototype.slice.call(ev.target.files));});
+document.getElementById('fPasta').addEventListener('change',function(ev){
+  lerArquivosLocais(Array.prototype.slice.call(ev.target.files));});
+
+var DRIVE_LISTA=[];
+document.getElementById('btDrive').addEventListener('click',function(){
+  var ref=document.getElementById('pastaDrive').value.trim();
+  if(!ref){erro('cole antes o link, o ID ou o nome da pasta do Drive no campo ao lado.');return;}
+  log('listando CSVs da pasta...');
+  google.script.run.withSuccessHandler(function(r){
+    if(!r.ok){erro(r.erro);return;}
+    DRIVE_LISTA=r.arquivos;
+    document.getElementById('btDriveLer').hidden=!r.arquivos.length;
+    document.getElementById('csvInfo').innerHTML='Pasta <b>'+esc(r.pasta)+'</b>: '+r.arquivos.length+' arquivo(s) - '+
+      r.arquivos.map(function(a){return esc(a.nome);}).join(' &middot; ');
+    log(r.arquivos.length+' arquivos em "'+r.pasta+'". Clique em Importar todos.');
+  }).withFailureHandler(function(e){erro(String(e));}).listarCsvsDrive(ref);});
+
+document.getElementById('btDriveLer').addEventListener('click',function(){
+  if(!DRIVE_LISTA.length)return;
+  var bt=this;bt.disabled=true;ST.arquivos=[];var i=0;
+  (function prox(){
+    if(i>=DRIVE_LISTA.length){bt.disabled=false;fecharLote();return;}
+    var a=DRIVE_LISTA[i++];
+    log('lendo '+a.nome+' ('+i+'/'+DRIVE_LISTA.length+')...');
+    google.script.run.withSuccessHandler(function(r){
+      if(r.ok){try{
+        if(r.truncado)log('ATENCAO: '+r.nome+' passou do limite de linhas e foi cortado.');
+        if(r.matriz)registrarMatriz(r.nome,r.matriz);
+        else registrarArquivo(r.nome,r.texto);
+      }catch(e){erro(a.nome+': '+e);}}
+      else erro(a.nome+': '+r.erro);
+      prox();
+    }).withFailureHandler(function(e){erro(a.nome+': '+e);prox();}).lerCsvDrive(a.id);})();});
+
+function montarSelects(){
+  var alvos=[['cNcm',['NCM'],false],['cCod',['CODIGO','COD','GTIN','EAN'],true],
+             ['cProd',['PRODUTO','DESCRICAO','XPROD'],false],['cSit',['SITUACAO','STATUS'],true],
+             ['cAnexo',['ANEXO'],true],['cItem',['ITEM'],true],['cBenef',['BENEFICIO'],true],
+             ['cQtde',['QTDE','QUANTIDADE','QUANT'],true],['cValor',['R PRODUTO','VALOR','R CONTABIL','R TOTAL'],true]];
+  alvos.forEach(function(a){
+    var el=document.getElementById(a[0]);el.innerHTML='';
+    if(a[2])el.appendChild(new Option('(nenhuma)',''));
+    ST.cab.forEach(function(c){el.appendChild(new Option(c,c));});   /* valor = NOME da coluna */
+    for(var i=0;i<ST.cab.length;i++){var n=norm(ST.cab[i]);
+      if(a[1].some(function(k){return n===k||n.indexOf(k)===0;})){el.value=ST.cab[i];break;}}});
+  document.getElementById('mapCols').hidden=false;}
+
+/* resolve o indice da coluna pelo NOME dentro do cabecalho de cada arquivo do lote */
+function idxDe(cab,nome){
+  if(!nome)return -1;
+  var alvo=norm(nome);
+  for(var i=0;i<cab.length;i++)if(norm(cab[i])===alvo)return i;
+  return -1;}
+
+/* Relatorio contabil costuma mesclar celulas: o titulo "Qtde" fica numa coluna e o
+   numero na seguinte. Se a coluna do cabecalho vier vazia e a vizinha tiver dado,
+   e ela que vale. */
+function ajustarIndice(linhas,i){
+  if(i<0)return i;
+  var amostra=Math.min(linhas.length,60),cheio=0,cheioDir=0,n=0;
+  for(var k=0;k<amostra;k++){
+    var l=linhas[k];if(!l)continue;n++;
+    if(String(l[i]==null?'':l[i]).trim()!=='')cheio++;
+    if(String(l[i+1]==null?'':l[i+1]).trim()!=='')cheioDir++;}
+  if(!n)return i;
+  return (cheio/n<0.2&&cheioDir/n>0.7)?i+1:i;}
+
+/* ---------- XML ---------- */
+document.getElementById('fXml').addEventListener('change',function(ev){
+  var arqs=Array.prototype.slice.call(ev.target.files);if(!arqs.length)return;
+  ST.xml=[];ST.meta.qtdXml=arqs.length;
+  var wrap=document.getElementById('barWrap'),bar=document.getElementById('bar');
+  wrap.hidden=false;bar.style.width='0%';
+  var feito=0,total=arqs.length;
+  function fim(){feito++;bar.style.width=Math.round(feito/total*100)+'%';
+    if(feito===total){var cr=ST.xml.filter(function(i){return /^\d{5,}$/.test(i.registro);}).length;
+      log('XML: '+ST.xml.length+' itens | '+cr+' com cProdANVISA numerico.');
+      marcarPasso(2,ST.xml.length>0,ST.xml.length+' itens lidos - '+cr+' com registro');
+      avaliarBotoes();}}
+  arqs.forEach(function(f){
+    if(/\.zip$/i.test(f.name)){
+      if(typeof JSZip==='undefined'){erro('JSZip nao carregou - descompacte e envie os .xml.');fim();return;}
+      JSZip.loadAsync(f).then(function(z){var ps=[];
+        z.forEach(function(path,ent){if(!ent.dir&&/\.xml$/i.test(path))
+          ps.push(ent.async('string').then(function(t){ST.xml=ST.xml.concat(lerXml(t,path));}));});
+        return Promise.all(ps);}).then(fim).catch(function(e){erro('ZIP '+f.name+': '+e);fim();});
+    }else{var fr=new FileReader();
+      fr.onload=function(){ST.xml=ST.xml.concat(lerXml(fr.result,f.name));fim();};
+      fr.onerror=function(){erro('falha em '+f.name);fim();};
+      fr.readAsText(f,'utf-8');}});});
+
+/* ---------- base ANVISA ---------- */
+function carregarBaseMatriz(m,info){
+  if(!m||m.length<2){erro('base vazia.');return;}
+  var cab=m[0].map(norm);
+  function acha(ks){for(var i=0;i<cab.length;i++)for(var k=0;k<ks.length;k++)if(cab[i].indexOf(ks[k])>=0)return i;return -1;}
+  var iReg=acha(['REGISTRO','NUMERO_REGISTRO','NUMEROREGISTRO']),
+      iNom=acha(['NOME_COMERCIAL','NOMECOMERCIAL','NOME_TECNICO','PRODUTO','NOME']),
+      iCnpj=acha(['CNPJ']),iEmp=acha(['EMPRESA','DETENTOR','FABRICANTE','RAZAO']),
+      iSit=acha(['SITUACAO','STATUS']),iVal=acha(['VENCIMENTO','VALIDADE']),
+      iMod=acha(['MODELO','APRESENTACAO']);
+  if(iNom<0){erro('nao achei coluna de nome na base.');return;}
+  ST.base=m.slice(1).map(function(l){var nome=l[iNom]||'';
+    return{reg:iReg>=0?String(l[iReg]||''):'',nome:nome,tok:tokens(nome),
+      cnpj:iCnpj>=0?soDigito(l[iCnpj]):'',empresa:iEmp>=0?String(l[iEmp]||''):'',
+      sit:iSit>=0?String(l[iSit]||''):'',val:iVal>=0?String(l[iVal]||''):'',
+      modelo:iMod>=0?String(l[iMod]||''):''};}).filter(function(r){return r.tok.length;});
+  ST.meta.arquivoBase=(info&&info.arquivo)||'upload manual';
+  ST.meta.hashBase=(info&&info.hash)||'';
+  document.getElementById('escolhaArq').hidden=true;
+  document.getElementById('fonteAnvisa').classList.remove('vazio');
+  if(ST.meta.arquivoBase&&ST.meta.arquivoBase!=='lista oficial da ANVISA'){
+    document.getElementById('baseSub').textContent='Arquivo '+ST.meta.arquivoBase+
+      (ST.meta.hashBase?' (identificador '+ST.meta.hashBase+')':'')+'.';}
+  log('Base ANVISA: '+ST.base.length+' registros ('+ST.meta.arquivoBase+').');
+  if(!document.getElementById('passo3').classList.contains('feito'))
+    marcarPasso(3,true,ST.base.length.toLocaleString('pt-BR')+' produtos');
+  avaliarBotoes();avaliarIA();
+  google.script.run.withSuccessHandler(checarValidade)
+    .registrarCargaBase({linhas:ST.base.length,arquivo:ST.meta.arquivoBase,hash:ST.meta.hashBase});}
+
+document.getElementById('fBase').addEventListener('change',function(ev){
+  var f=ev.target.files[0];if(!f)return;
+  lerTexto(f,function(t,err){if(err){erro(err);return;}
+    carregarBaseMatriz(parseCsv(t,detectarSep(t)),{arquivo:f.name});});});
+
+document.getElementById('btBaixar').addEventListener('click',function(){
+  var u=document.getElementById('selArq').value||document.getElementById('urlBase').value.trim();
+  if(!u){erro('escolha um arquivo primeiro.');return;}
+  if(/\/$/.test(u)){document.getElementById('urlBase').value=u;
+    document.getElementById('btListar').click();return;}
+  document.getElementById('baseInfo').textContent='Baixando...';
+  baixarBase(u);});
+
+/* Um clique: procura, escolhe e baixa o arquivo certo. So pede ajuda se nao decidir. */
+document.getElementById('btAuto').addEventListener('click',function(){
+  var bt=this;bt.disabled=true;
+  log('reiniciando a carga da lista da ANVISA...');
+  google.script.run.withSuccessHandler(function(){bt.disabled=false;acompanharAnvisa(false);})
+    .withFailureHandler(function(e){bt.disabled=false;erro(String(e));}).iniciarCargaAnvisa();
+  return;
+  /* caminho antigo, mantido para o botao "Baixar este" do modo manual */
+  // eslint-disable-next-line
+  var w=document.getElementById('barBaseWrap'),b=document.getElementById('barBase');
+  w.hidden=false;b.style.width='25%';
+  document.getElementById('baseInfo').textContent='Procurando no site da ANVISA...';
+  log('procurando a lista da ANVISA...');
+  google.script.run.withSuccessHandler(function(r){
+    if(!r.ok){b.style.width='0';bt.disabled=false;
+      document.getElementById('baseInfo').textContent='Nao consegui acessar o site da ANVISA agora. Use "Outras formas de carregar a lista".';
+      erro(r.erro);return;}
+    if(!r.escolhido){
+      b.style.width='0';bt.disabled=false;
+      var sel=document.getElementById('selArq');
+      sel.innerHTML='<option value="">escolha um arquivo</option>'+
+        r.candidatos.map(function(a){return '<option value="'+esc(a.url)+'">'+esc(a.nome)+'</option>';}).join('');
+      document.getElementById('escolhaArq').hidden=false;
+      document.getElementById('baseInfo').textContent='Encontrei '+r.candidatos.length+' arquivos, mas nenhum obviamente certo.';
+      log('nenhum arquivo identificado automaticamente.');return;}
+    document.getElementById('baseInfo').textContent='Baixando '+r.escolhido.nome+'...';
+    log('arquivo escolhido: '+r.escolhido.nome);
+    b.style.width='60%';
+    baixarBase(r.escolhido.url,function(){b.style.width='100%';bt.disabled=false;
+      setTimeout(function(){w.hidden=true;b.style.width='0';},900);});
+  }).withFailureHandler(function(e){b.style.width='0';bt.disabled=false;erro(String(e));}).descobrirBaseAnvisa();});
+
+function baixarBase(url,fim){
+  google.script.run.withSuccessHandler(function(r){
+    if(!r.ok){
+      document.getElementById('baseInfo').textContent='Nao consegui baixar esse arquivo. Ele pode ser grande demais - baixe pelo navegador e use "Outras formas de carregar a lista".';
+      erro(r.erro);if(fim)fim();return;}
+    carregarBaseMatriz(parseCsv(r.texto,detectarSep(r.texto)),{arquivo:r.arquivo,hash:r.hash});
+    if(fim)fim();
+  }).withFailureHandler(function(e){erro(String(e));if(fim)fim();}).baixarCsvAnvisa(url);}
+
+document.getElementById('btListar').addEventListener('click',function(){
+  log('lendo o indice de dados.anvisa.gov.br ...');
+  google.script.run.withSuccessHandler(function(r){
+    if(!r.ok){erro(r.erro+' - se falhar, abra o endereco no navegador e copie a URL do arquivo.');return;}
+    var sel=document.getElementById('selArq');
+    document.getElementById('escolhaArq').hidden=false;
+    sel.innerHTML='<option value="">'+r.arquivos.length+' itens - escolha</option>'+
+      r.arquivos.map(function(a){return '<option value="'+esc(a)+'">'+esc(a.replace(r.url,''))+'</option>';}).join('');
+    log(r.arquivos.length+' itens em '+r.url);
+  }).listarArquivosAnvisa(document.getElementById('urlBase').value.trim()||null);});
+
+document.getElementById('selArq').addEventListener('change',function(e){
+  if(e.target.value)document.getElementById('urlBase').value=e.target.value;});
+
+document.getElementById('btAba').addEventListener('click',function(){carregarBaseDaAba(false);});
+
+/* ---------- carga automatica da lista da ANVISA ---------- */
+var TIMER_ANVISA=null;
+function acompanharAnvisa(primeira){
+  var fn=primeira?'garantirBaseAnvisa':'statusCargaAnvisa';
+  google.script.run.withSuccessHandler(function(r){
+    if(!r||!r.ok){marcarPasso(3,false,'nao consegui verificar');return;}
+    var w=document.getElementById('barBaseWrap'),b=document.getElementById('barBase');
+    var cx=document.getElementById('fonteAnvisa');
+    if(r.estado==='carregando'){
+      w.hidden=false;b.style.width=Math.max(r.pct||0,4)+'%';
+      document.getElementById('baseInfo').textContent='Baixando a lista da ANVISA... '+(r.pct||0)+'%';
+      document.getElementById('baseSub').textContent=(r.linhas||0).toLocaleString('pt-BR')+
+        ' produtos ate agora. Isso acontece uma unica vez e roda em segundo plano - pode seguir com os outros passos.';
+      marcarPasso(3,false,'baixando '+(r.pct||0)+'%');
+      if(!TIMER_ANVISA)TIMER_ANVISA=setInterval(function(){acompanharAnvisa(false);},8000);
+      return;}
+    if(TIMER_ANVISA){clearInterval(TIMER_ANVISA);TIMER_ANVISA=null;}
+    if(r.estado==='pronta'){
+      w.hidden=true;cx.classList.remove('vazio');
+      document.getElementById('baseInfo').textContent=(r.linhas||0).toLocaleString('pt-BR')+' produtos na lista oficial';
+      document.getElementById('baseSub').textContent='Guardada na planilha'+(r.data?' em '+r.data:'')+
+        '. Atualiza sozinha todo mes. Clique em Baixar de novo so se quiser antecipar.';
+      marcarPasso(3,true,(r.linhas||0).toLocaleString('pt-BR')+' produtos');
+      if(!ST.base.length)carregarBaseDaAba(true);
+      return;}
+    w.hidden=true;
+    document.getElementById('baseInfo').textContent=r.erro?'A carga automatica falhou':'Lista ainda nao carregada';
+    document.getElementById('baseSub').textContent=r.erro
+      ? r.erro+' - use as opcoes em "Se a carga automatica falhar".'
+      : 'Clique em Baixar de novo para tentar.';
+    marcarPasso(3,false,r.erro?'falhou':'pendente');
+  }).withFailureHandler(function(e){erro(String(e));})[fn]();}
+
+function carregarBaseDaAba(silencioso){
+  google.script.run.withSuccessHandler(function(r){
+    if(!r.ok||!r.linhas.length){if(!silencioso)log('aba BASE_ANVISA vazia.');return;}
+    carregarBaseMatriz(r.linhas,{arquivo:'lista oficial da ANVISA'});
+  }).lerBaseAnvisa();}
+
+/* ---------- semaforos: base da Anvisa (Etapa A) e Anexos da LC 214 (Etapa B) ---------- */
+var COR={ATUAL:['#137333','#eef7f0'],ATENCAO:['#b06000','#fdf6ec'],ANTIGA:['#b3261e','#fdeeed'],VERIFICAR:['#b3261e','#fdeeed']};
+function checarValidade(){
+  google.script.run.withSuccessHandler(function(rb){
+    google.script.run.withSuccessHandler(function(ra){
+      var el=document.getElementById('alerta'),tx=document.getElementById('alertaTxt'),sb=document.getElementById('alertaSub');
+      var linhas=[],pior='ATUAL';
+      if(rb&&rb.ok&&rb.temBase){
+        linhas.push('Etapa A - base da Anvisa: '+rb.dias+' dias desde o download ('+rb.dataTexto+'). '+
+          'Arquivo '+(rb.arquivo||'-')+' | identificador '+(rb.hash||'-')+' | '+rb.linhas+' registros. '+
+          'Nao ha prazo legal de validade; a Anvisa atualiza a base continuamente.');
+        if(rb.faixa!=='ATUAL')pior=rb.faixa;
+        ST.meta.dataBase=rb.dataTexto;ST.meta.arquivoBase=rb.arquivo||ST.meta.arquivoBase;ST.meta.hashBase=rb.hash||ST.meta.hashBase;}
+      if(ra&&ra.ok&&ra.tem){
+        linhas.push('Etapa B - Anexos da LC 214 na versao de '+ra.dataTexto+' ('+ra.dias+' dias)'+(ra.ato?' - '+ra.ato:'')+'. '+
+          'O art. 131, §2o preve revisao a cada 120 dias por ato conjunto do Ministro da Fazenda e do Comite Gestor do IBS, '+
+          'ouvido o Ministerio da Saude. '+(ra.faixa==='VERIFICAR'?'Passou de 120 dias: confirme se ha ato posterior antes de entregar.':'Dentro do ciclo.'));
+        ST.meta.versaoAnexos=ra.dataTexto;ST.meta.atoAnexos=ra.ato;
+        if(ra.faixa!=='ATUAL'&&pior==='ATUAL')pior=ra.faixa;
+      }else{linhas.push('Etapa B - versao dos Anexos da LC 214 nao informada. Registre a data no passo 6 para rastreabilidade.');
+        if(pior==='ATUAL')pior='ATENCAO';}
+      if(!linhas.length){el.hidden=true;return;}
+      var c=COR[pior]||COR.ATENCAO;
+      el.style.borderColor=c[0];el.style.background=c[1];el.hidden=false;
+      tx.textContent={ATUAL:'Fontes dentro do prazo',ATENCAO:'Atencao nas fontes',ANTIGA:'Fonte desatualizada',VERIFICAR:'Verificacao obrigatoria'}[pior];
+      sb.innerHTML=linhas.map(function(l){return esc(l);}).join('<br><br>');
+      var cls={ATUAL:'',ATENCAO:'warn',ANTIGA:'err',VERIFICAR:'err'};
+      document.getElementById('chips').innerHTML=
+        '<span class="chip '+(rb&&rb.ok&&rb.temBase?cls[rb.faixa]:'err')+'"><i></i>Lista da ANVISA: '+
+          (rb&&rb.ok&&rb.temBase?esc(rb.dataTexto)+' ('+rb.dias+' dias)':'nao carregada')+'</span>'+
+        '<span class="chip '+(ra&&ra.ok&&ra.tem?cls[ra.faixa]:'warn')+'"><i></i>Anexos da LC 214: '+
+          (ra&&ra.ok&&ra.tem?esc(ra.dataTexto):'versao nao informada')+'</span>';
+    }).statusAnexos();
+  }).statusBase();}
+
+document.getElementById('verAnexos').addEventListener('change',function(){
+  if(this.value)document.getElementById('btVer').click();});
+document.getElementById('btVer').addEventListener('click',function(){
+  var d=document.getElementById('verAnexos').value;
+  if(!d){erro('informe a data da versao dos Anexos.');return;}
+  google.script.run.withSuccessHandler(function(){log('versao dos Anexos registrada.');checarValidade();})
+    .registrarVersaoAnexos({data:d,ato:document.getElementById('atoAnexos').value.trim()});});
+
+/* ---------- conferencias manuais e base LC 214 ---------- */
+function carregarManual(){
+  google.script.run.withSuccessHandler(function(r){
+    if(!r.ok){erro(r.erro);return;}
+    var m=r.linhas;
+    if(!m||m.length<2){document.getElementById('manualInfo').textContent='Nenhuma conferencia anterior ainda';return;}
+    ST.manual=m.slice(1).filter(function(l){return String(l[1]||'').trim()||String(l[0]||'').trim();}).map(function(l){
+      var nome=String(l[1]||'');
+      return{cod:gtinNorm(l[0])||norm(l[0]),nome:nome,tok:tokens(nome),tipo:norm(l[2])||'REGISTRO',
+             reg:String(l[3]||''),val:String(l[4]||''),quem:String(l[5]||''),obs:String(l[7]||''),cnpj:''};});
+    document.getElementById('manualInfo').textContent=ST.manual.length===1
+      ? '1 conferencia anterior reaproveitada'
+      : ST.manual.length+' conferencias anteriores reaproveitadas';
+    document.getElementById('fonteManual').classList.remove('vazio');
+    log('Cadastro manual: '+ST.manual.length+' itens.');avaliarBotoes();
+  }).withFailureHandler(function(e){erro(String(e));}).lerCadastroManual();}
+
+function carregarLC214(){
+  google.script.run.withSuccessHandler(function(r){
+    if(!r.ok||!r.linhas.length)return;
+    var m=r.linhas;ST.lc214={};
+    var cab=m[0].map(norm);
+    function ix(k){for(var i=0;i<cab.length;i++)if(cab[i].indexOf(k)>=0)return i;return -1;}
+    var iN=ix('NCM'),iIt=ix('ITEM'),iAx=ix('ANEXO'),iHip=ix('HIPOTESE'),
+        iBen=ix('BENEFICIO'),iAnv=ix('EXIGE ANVISA'),iCcl=ix('CCLASSTRIB'),iLit=ix('TEXTO LITERAL');
+    if(iN<0)iN=0;
+    m.slice(1).forEach(function(l){
+      var n=soDigito(l[iN]);if(n.length<4)return;   /* linha de servico (NBS) fica de fora */
+      var lit=iLit>=0?String(l[iLit]||''):'';
+      /* uma mesma NCM pode estar em mais de um anexo com beneficios diferentes -
+         guardamos todos e a descricao do produto decide qual se aplica */
+      (ST.lc214[n]||(ST.lc214[n]=[])).push({
+        item:iIt>=0?String(l[iIt]||''):'',anexo:iAx>=0?String(l[iAx]||''):'',
+        hipotese:iHip>=0?String(l[iHip]||''):'',benef:iBen>=0?String(l[iBen]||''):'',
+        exigeAnvisa:iAnv<0||norm(l[iAnv])!=='N',
+        ccl:iCcl>=0?String(l[iCcl]||''):'',literal:lit,tok:tokens(lit)});});
+    var q=Object.keys(ST.lc214).length;
+    ST.lc214Linhas=m.length-1;
+    log('Base LC 214: '+q+' NCMs ('+(r.origem||'-')+').');
+    if(q){document.getElementById('lcInfo').textContent=q+' NCMs dos anexos da LC 214 - '+
+        (r.origem==='base embutida no script'?'base oficial ja embutida na ferramenta':'aba BASE_LC214 da planilha');
+      document.getElementById('fonteLC').classList.remove('vazio');}
+  }).lerBaseLC214();}
+
+document.getElementById('btManual').addEventListener('click',carregarManual);
+document.getElementById('btLC').addEventListener('click',carregarLC214);
+document.getElementById('btPrep').addEventListener('click',function(){
+  google.script.run.withSuccessHandler(function(r){
+    r.ok?log('abas de apoio prontas: CADASTRO_MANUAL, BASE_LC214, LOG_EXECUCAO.'):erro(r.erro);
+  }).prepararAbas();});
+window.addEventListener('load',function(){
+  document.getElementById('verApp').textContent=VERSAO_APP;
+  log('Ferramenta versao '+VERSAO_APP+'.');
+  google.script.run.withSuccessHandler(function(){carregarManual();carregarLC214();})
+    .withFailureHandler(function(){carregarManual();carregarLC214();}).prepararAbas();
+  checarValidade();
+  acompanharAnvisa(true);});
+
+/* A lei cita ora a NCM completa, ora so a posicao (9402.90) ou a subposicao
+   (4015.1) - por isso a busca desce do codigo completo ate 4 digitos.
+   Encontrada a NCM, a DESCRICAO decide qual item do anexo se aplica: e o teste
+   duplo. Quando a mesma NCM esta em dois anexos (por exemplo ortese no Anexo IV
+   com 60% e no Anexo XII com aliquota zero), vence o item cuja descricao mais se
+   aproxima do produto; empatando, vence o beneficio maior. */
+var FORCA_BENEF={'ALIQUOTA ZERO':3,'REDUCAO DE 60%':2};
+
+/* Para o teste duplo nao serve a mesma medida usada no cruzamento com a Anvisa.
+   O texto da lei e curto e generico ("Seringas, mesmo com agulhas") e o do produto
+   e longo e cheio de medida e marca ("SERINGA INSULINA 1ML LS SR 13MM"). O Dice
+   pune essa diferenca de tamanho e reprovaria o item. Aqui o que importa e quanto
+   do texto legal aparece no produto - por isso o coeficiente de sobreposicao. */
+/* O texto legal costuma enumerar varios produtos numa frase so - "Mesas de
+   operacao e para exames, camas hospitalares e de uso clinico". Exigir cobertura
+   da frase inteira reprovaria a cama hospitalar, que e so um dos itens. Por isso
+   a comparacao roda contra cada trecho separadamente, e o substantivo principal
+   do produto (CAMA, SERINGA, LUVA) conta como evidencia forte. */
+function segmentos(literal,tkLei){
+  var partes=String(literal||'').split(/[;,]| ou | exceto | ressalvad\w*/i);
+  var segs=[];
+  for(var i=0;i<partes.length;i++){
+    if(partes[i].trim().length<3)continue;
+    var t=tokens(partes[i]);
+    if(t.length)segs.push(t);}
+  return segs.length?segs:[tkLei];}
+
+function aderencia(tkProd,tkLei,literal){
+  if(!tkProd.length||!tkLei.length)return 0;
+  var set={},i;
+  for(i=0;i<tkProd.length;i++)set[tkProd[i]]=1;
+  var segs=segmentos(literal,tkLei),cov=0;
+  for(var k=0;k<segs.length;k++){
+    var vistos={},unicos=0,inter=0;
+    for(i=0;i<segs[k].length;i++){var t=segs[k][i];if(vistos[t])continue;vistos[t]=1;unicos++;if(set[t])inter++;}
+    if(unicos)cov=Math.max(cov,inter/unicos);}
+  var lei={};for(i=0;i<tkLei.length;i++)lei[tkLei[i]]=1;
+  var cabeca=(tkProd.length&&lei[tkProd[0]])?1:0;
+  return Math.max(cov,0.6*cabeca+0.4*cov);}
+function acharLC(ncm,tk){
+  var cands=null;
+  for(var L=ncm.length;L>=4&&!cands;L--){
+    var k=ncm.slice(0,L);
+    if(ST.lc214[k])cands=ST.lc214[k];}
+  if(!cands||!cands.length)return null;
+  var melhor=null,ms=-1;
+  for(var i=0;i<cands.length;i++){
+    var c=cands[i],sc=(tk&&tk.length&&c.tok.length)?aderencia(tk,c.tok,c.literal):0;
+    var peso=sc*100+(FORCA_BENEF[norm(c.benef)]||0);
+    if(peso>ms){ms=peso;melhor=c;melhor._score=sc;}}
+  var outros=[];
+  for(var j=0;j<cands.length;j++)
+    if(cands[j]!==melhor&&cands[j].anexo!==melhor.anexo)
+      outros.push(cands[j].anexo+' item '+cands[j].item+' ('+cands[j].benef+')');
+  /* Quando nenhum item da NCM tem qualquer palavra em comum com o produto e ha
+     varios candidatos, apontar um deles seria chute - a NCM 3004.90.99 tem
+     dezenas de medicamentos no Anexo XIV. Melhor dizer que ha varios. */
+  var indefinido=(!melhor._score&&cands.length>1);
+  return {c:melhor,score:melhor._score||0,alternativas:outros,indefinido:indefinido,
+          quantos:cands.length};}
+
+/* ===================== processamento ===================== */
+function avaliarBotoes(){
+  /* Unica exigencia: ter a lista de produtos. A base da LC 214 ja vem embutida,
+     entao a classificacao pela NCM roda sem XML e sem a lista da Anvisa. */
+  var pronto=!!(ST.arquivos&&ST.arquivos.length);
+  var bt=document.getElementById('btRun');
+  bt.disabled=!pronto;
+  var temProva=!!(ST.xml.length||ST.base.length||ST.manual.length);
+  document.getElementById('faltaTxt').textContent=!pronto
+    ? 'Carregue a lista de produtos no passo 1 para liberar a analise.'
+    : (temProva
+       ? 'Tudo pronto: classificacao pela NCM e prova de regularizacao na Anvisa.'
+       : 'Pronto para classificar pela NCM. Sem os passos 2 e 3 o resultado nao traz a prova de regularizacao na Anvisa.');}
+
+/* marca visualmente cada passo como concluido */
+function marcarPasso(n,ok,texto){
+  var p=document.getElementById('passo'+n);if(!p)return;
+  p.classList.toggle('feito',!!ok);
+  var s=p.querySelector('.st-status');
+  if(s)s.textContent=ok?(texto||'pronto'):(texto||'pendente');}
+document.getElementById('btRun').addEventListener('click',function(){
+  try{processar();}catch(e){erro('processamento: '+e);}});
+
+var FORCA={A:'Alta',B:'Alta',C:'Media',D:'Baixa',NA:'Nao se aplica',SB:'Conclusiva (negativa)'};
+/* Cenario otimista: conta como enquadrado o que o teste duplo nao sustenta.
+   Serve para medir o que esta em jogo, nunca para entregar ao cliente. */
+function OTIMISTA(){var e=document.getElementById('otimista');return !!(e&&e.checked);}
+
+function processar(){
+  var nomeCols={ncm:document.getElementById('cNcm').value,cod:document.getElementById('cCod').value,
+                prod:document.getElementById('cProd').value,sit:document.getElementById('cSit').value,
+                anexo:document.getElementById('cAnexo').value,item:document.getElementById('cItem').value,
+                benef:document.getElementById('cBenef').value,
+                qtde:document.getElementById('cQtde').value,valor:document.getElementById('cValor').value};
+  var LIM=parseFloat(document.getElementById('limiar').value)||0.72;
+
+  var porGtin={},porCod={},listaXml=[];
+  ST.xml.forEach(function(x){x.tok=tokens(x.xProd);
+    if(x.gtin&&x.gtin!=='0'){if(!porGtin[x.gtin]||(!porGtin[x.gtin].registro&&x.registro))porGtin[x.gtin]=x;}
+    var c=norm(x.cProd);if(c){if(!porCod[c]||(!porCod[c].registro&&x.registro))porCod[c]=x;}
+    listaXml.push(x);});
+  var idxXml=construirIndice(listaXml),
+      idxBase=ST.base.length?construirIndice(ST.base):{},
+      idxMan=ST.manual.length?construirIndice(ST.manual):{};
+  var porCodMan={};ST.manual.forEach(function(x){if(x.cod)porCodMan[x.cod]=x;});
+  var porCodBase={};ST.base.forEach(function(x){if(x.cod&&!porCodBase[x.cod])porCodBase[x.cod]=x;});
+  ST.porCodBase=porCodBase;ST.memoTermo={};
+  log('indices: '+Object.keys(idxXml).length+' (XML), '+Object.keys(idxBase).length+' (base), '+Object.keys(idxMan).length+' (manual).');
+
+  var res=[];
+  ST.arquivos.forEach(function(arq){
+   var iNcm=idxDe(arq.cab,nomeCols.ncm),iCod=idxDe(arq.cab,nomeCols.cod),
+       iPrd=idxDe(arq.cab,nomeCols.prod),iSit=idxDe(arq.cab,nomeCols.sit),
+       iAnx=idxDe(arq.cab,nomeCols.anexo),iItm=idxDe(arq.cab,nomeCols.item),
+       iBen=idxDe(arq.cab,nomeCols.benef),
+       iQt=idxDe(arq.cab,nomeCols.qtde),iVl=idxDe(arq.cab,nomeCols.valor);
+   iNcm=ajustarIndice(arq.linhas,iNcm); iCod=ajustarIndice(arq.linhas,iCod);
+   iPrd=ajustarIndice(arq.linhas,iPrd); iQt=ajustarIndice(arq.linhas,iQt);
+   iVl=ajustarIndice(arq.linhas,iVl);
+   if(iNcm<0&&iPrd<0){erro('sem colunas NCM/Produto em '+arq.nome+' - arquivo ignorado.');return;}
+   arq.linhas.forEach(function(l){
+    var ncm=iNcm>=0?soDigito(l[iNcm]):'',cod=iCod>=0?String(l[iCod]||'').trim():'',
+        prd=iPrd>=0?String(l[iPrd]||'').trim():'';
+    if(!ncm&&!prd)return;
+    /* O Dominio traz o codigo junto da descricao: "7891234567895 - SERINGA 10ML".
+       O codigo pode ser um GTIN de 13 digitos ou um codigo interno de 2 ou 3
+       ("871 - FIO DE SUTURA"), entao nao da para exigir tamanho minimo. O que
+       distingue codigo de palavra e ter algarismo: em "AGULHA - SR 40x1,20"
+       o primeiro pedaco e palavra e nao pode virar codigo. */
+    if(prd){
+      var mc=prd.match(/^\s*([A-Za-z0-9][A-Za-z0-9._\-\/]{0,19})\s+-\s+(.+)$/);
+      if(mc){
+        var t=mc[1];
+        /* aceita so numero puro (codigo interno ou GTIN) ou SKU longo com digito.
+           Assim "871 - FIO DE SUTURA" separa e "3M - MICROPORE" nao vira codigo. */
+        var ehCodigo=/^\d+$/.test(t)||(t.length>=6&&/\d/.test(t));
+        if(ehCodigo&&(!cod||t.length>=6)){cod=t;prd=mc[2].trim();}}}
+    var tk=tokens(prd);
+
+    var r={origem:arq.nome,ncm:ncm,cod:cod,prod:prd,
+      sitEntrada:iSit>=0?String(l[iSit]||'').trim():'',
+      anexo:iAnx>=0?String(l[iAnx]||'').trim():'',
+      item:iItm>=0?String(l[iItm]||'').trim():'',
+      benef:iBen>=0?String(l[iBen]||'').trim():'',
+      hipotese:'',exigeAnvisa:true,enquadrado:false,ccl:'',literal:'',
+      aderencia:'',aderenciaTxt:'',alternativas:'',indefinido:false,
+      qtde:(iQt>=0?numero(l[iQt]):0),valor:(iVl>=0?numero(l[iVl]):0),ocorrencias:1,
+      statusAnvisa:'NAO LOCALIZADO',numero:'',nivel:'D',forca:'Baixa',
+      fonte:'',arquivoFonte:'',metodo:'',confianca:'',conferidoPor:'',
+      cnpj:'',forn:'',justificativa:'',situacaoFinal:'',acao:'',termo:''};
+
+    /* ---------- ETAPA B: enquadramento na LC 214 ---------- */
+    var achado=acharLC(ncm,tk),lc=achado&&achado.c;
+    if(lc){
+      r.anexo=lc.anexo||r.anexo;
+      r.exigeAnvisa=lc.exigeAnvisa;
+      r.aderencia=achado.score.toFixed(2);
+      r.aderenciaTxt=achado.score>=0.50?'alta':(achado.score>=0.25?'media':'baixa');
+      r.alternativas=achado.alternativas.join(' | ');
+      r.indefinido=achado.indefinido;
+      /* TESTE DUPLO: a NCM constar do anexo nao basta. Se a descricao do produto nao
+         corresponde ao item descrito, o enquadramento nao se sustenta - e a ferramenta
+         nao pode herdar o beneficio de um item escolhido por desempate. Era o que
+         punha NUTRISON ENERGY em "alimentacao humana - aliquota zero". */
+      r.sustentado=!achado.indefinido&&achado.score>=0.25;
+      if(r.sustentado||OTIMISTA()){
+        r.item=lc.item||r.item;r.benef=lc.benef||r.benef;
+        r.hipotese=lc.hipotese;r.ccl=lc.ccl;r.literal=lc.literal;
+        if(!r.sustentado)r.herdado=true;
+      }else{
+        r.item='';r.ccl='';
+        r.benefPossivel=lc.benef;r.hipotesePossivel=lc.hipotese;r.itemPossivel=lc.item;
+        r.literalPossivel=lc.literal;
+        r.naoSustentado=!achado.indefinido;
+        r.literal=achado.indefinido
+          ? ('A NCM consta em '+achado.quantos+' itens'+
+             (achado.alternativas.length?' de anexos diferentes':' deste anexo')+
+             ' e nenhum tem palavra em comum com a descricao do produto - e preciso identificar qual se aplica.')
+          : ('O item '+lc.item+' do Anexo '+lc.anexo+' descreve "'+String(lc.literal).slice(0,120)+
+             '", que nao corresponde a este produto.');
+      }}
+    /* Art. 133: medicamento registrado na Anvisa tem reducao de 60% sem precisar
+       constar de anexo nenhum. E hipotese por regra, nao por lista. */
+    if(!lc&&/^300[34]/.test(ncm)){
+      r.anexo=r.anexo||'-';r.benef=r.benef||'REDUCAO DE 60%';
+      r.hipotese='Medicamento registrado na Anvisa (art. 133) - independe de anexo';
+      r.exigeAnvisa=true;}
+    var benefN=norm(r.benef),sitN=norm(r.sitEntrada);
+    r.enquadrado=!!(r.anexo&&r.anexo!=='-'&&benefN&&benefN.indexOf('SEM BENEFICIO')<0)
+               ||/^300[34]/.test(ncm)
+               ||/REDUCAO|ZERO/.test(benefN)
+               ||/BENEFICIO CONFIRMADO|RESSALVA/.test(sitN);
+
+    /* ---------- ETAPA A: regularizacao na Anvisa ---------- */
+    /* 0) conferencia ja registrada */
+    var man=porCodMan[gtinNorm(cod)]||porCodMan[norm(cod)]||null,manExato=!!man;
+    if(!man&&ST.manual.length&&tk.length){var mm=melhorMatch(tk,ST.manual,idxMan,0.92,'');if(mm)man=mm.item;}
+    if(man&&manExato){
+      r.statusAnvisa=man.tipo==='ISENTO'?'ISENTO (conferido)':
+        (man.tipo==='NAO REGULARIZADO'?'NAO REGULARIZADO (conferido)':'REGULARIZADO ('+man.tipo.toLowerCase()+')');
+      r.numero=man.reg;r.nivel='A';r.metodo='Codigo/GTIN exato';
+      r.fonte='Conferencia humana registrada';r.arquivoFonte='aba CADASTRO_MANUAL';
+      r.conferidoPor=man.quem;r.justificativa=man.obs;
+    }else if(man){
+      r.statusAnvisa='PROVAVEL - CONFERIR';r.numero=man.reg;r.nivel='D';
+      r.metodo='Descricao (similaridade)';r.fonte='Conferencia humana registrada';
+      r.arquivoFonte='aba CADASTRO_MANUAL';r.conferidoPor=man.quem;r.justificativa=man.obs;}
+
+    /* 1) XML da NF-e */
+    if(r.nivel!=='A'){
+      var hit=null,exato=false;
+      if(ehGtin(cod)){hit=porGtin[gtinNorm(cod)]||null;if(hit)exato=true;}
+      if(!hit){hit=porCod[norm(cod)]||null;if(hit)exato=true;}
+      if(!hit&&tk.length){var mx=melhorMatch(tk,listaXml,idxXml,LIM,'');
+        if(mx){hit=mx.item;r.confianca=mx.score.toFixed(2);}}
+      if(hit){
+        r.cnpj=hit.cnpjForn;r.forn=hit.nomeForn;
+        if(/^\d{5,}$/.test(hit.registro)){
+          r.numero=hit.registro;
+          r.statusAnvisa=exato?'REGISTRO (NF-e)':'PROVAVEL - CONFERIR';
+          r.nivel=exato?'A':'D';
+          r.metodo=exato?(ehGtin(cod)?'GTIN exato':'Codigo exato'):'Descricao (similaridade)';
+          r.fonte='Registro informado no XML da NF-e n. '+hit.nf;
+          r.arquivoFonte=hit.arq;
+        }else if(hit.isencao){
+          r.numero='-';
+          r.statusAnvisa=exato?'ISENTO (NF-e)':'PROVAVEL - CONFERIR';
+          r.nivel=exato?'A':'D';
+          r.metodo=exato?(ehGtin(cod)?'GTIN exato':'Codigo exato'):'Descricao (similaridade)';
+          r.fonte='Isencao informada no XML da NF-e n. '+hit.nf;
+          r.arquivoFonte=hit.arq;r.justificativa=hit.isencao;
+        }else if(!r.fonte){
+          r.fonte='XML da NF-e n. '+hit.nf+' sem grupo med';r.arquivoFonte=hit.arq;}
+      }
+    }
+
+    /* 2) base oficial da ANVISA */
+    if(r.nivel==='D'&&ST.base.length&&tk.length){
+      var mb=melhorMatch(tk,ST.base,idxBase,LIM,r.cnpj);
+      if(mb){
+        var b=mb.item,tipo=/CADASTR|NOTIFIC/.test(norm(b.sit))?'cadastro':'registro';
+        r.numero=b.reg;r.confianca=mb.score.toFixed(2);
+        r.arquivoFonte=ST.meta.arquivoBase;
+        if(mb.cnpjBateu&&mb.score>=0.85){
+          r.statusAnvisa='REGULARIZADO ('+tipo+')';r.nivel='B';
+          r.metodo='Descricao + CNPJ do fabricante';
+          r.fonte='Base oficial ANVISA'+(b.sit?' | '+b.sit:'')+(b.val?' | venc '+b.val:'');
+        }else{
+          r.statusAnvisa='PROVAVEL - CONFERIR';r.nivel='D';
+          r.metodo='Descricao (similaridade)';
+          r.fonte='Base oficial ANVISA'+(b.sit?' | '+b.sit:'');}
+      }
+    }
+
+    if(!r.benef)r.benef='SEM BENEFICIO';
+    /* Quando o anexo nao condiciona o beneficio a regularizacao - Anexo VIII
+       (higiene, art. 136), Anexo I (alimentacao), Anexo XIII, Anexo IX - o produto
+       nao esta pendente de nada: a Anvisa simplesmente nao entra nessa hipotese.
+       Marcar como "nao localizado" faria parecer falha onde nao ha exigencia. */
+    if(r.enquadrado&&!r.exigeAnvisa&&r.nivel==='D'){
+      r.nivel='NA';
+      r.statusAnvisa='ANVISA NAO EXIGIDA';
+      r.fonte=r.hipotese||('Anexo '+r.anexo+' nao condiciona o beneficio a regularizacao na Anvisa');
+      r.metodo='';r.confianca='';}
+    r.dataBase=ST.meta.dataBase;
+    /* ---------- ETAPA A2: cascata de consulta na Anvisa ---------- */
+    montarCascata(r,tk,prd,idxBase);
+    /* Esgotados os tres niveis sem nenhum retorno, o produto nao consta como
+       regularizado. Como o anexo condiciona o beneficio a regularizacao, a
+       conclusao e que nao ha beneficio - e nao uma pendencia em aberto. */
+    if(r.enquadrado&&r.exigeAnvisa&&r.nivel==='D'&&r.esgotou&&
+       !/NAO REGULARIZADO|PROVAVEL/.test(r.statusAnvisa)){
+      r.nivel='SB';
+      r.statusAnvisa='NAO CONSTA NA ANVISA';
+      r.fonte='Consulta esgotada nos 3 niveis (codigo/GTIN, nome x texto do anexo, '+
+              'nome do produto) na base oficial da Anvisa'+(r.dataBase?' de '+r.dataBase:'');
+      r.metodo='Cascata de consulta';r.confianca='';}
+    r.forca=FORCA[r.nivel];
+    concluir(r);
+    res.push(r);});
+  });
+
+  res=agrupar(res);
+  ST.resultado=res;ST.idxBase=idxBase;
+  render();
+  log('Processado: '+res.length+' linhas.');
+  gravarLog('Concluido');}
+
+/* Relatorio de movimentacao vem por item de nota: o mesmo produto aparece em
+   dezenas de notas. Sem agrupar, a contagem viraria numero de linhas de nota. */
+function numero(v){
+  if(v==null||v==='')return 0;
+  var t=String(v).replace(/[^0-9,.\-]/g,'');
+  if(t.indexOf(',')>=0&&t.lastIndexOf(',')>t.lastIndexOf('.'))t=t.replace(/\./g,'').replace(',','.');
+  else t=t.replace(/,/g,'');
+  var n=parseFloat(t);
+  return isNaN(n)?0:n;}
+
+function agrupar(res){
+  var mapa={},saida=[];
+  for(var i=0;i<res.length;i++){
+    var r=res[i],k=r.origem+'|'+r.cod+'|'+r.ncm+'|'+norm(r.prod);
+    var a=mapa[k];
+    if(!a){mapa[k]=r;saida.push(r);continue;}
+    a.qtde+=r.qtde;a.valor+=r.valor;a.ocorrencias++;}
+  for(var j=0;j<saida.length;j++){
+    saida[j].qtde=Math.round(saida[j].qtde*1000)/1000;
+    saida[j].valor=Math.round(saida[j].valor*100)/100;}
+  return saida;}
+
+/* Situacao final = cruzamento das duas etapas */
+function concluir(r){
+  marcarFinal(r);
+  /* Teste duplo: a NCM consta do anexo, mas se a descricao do item nao tem nada a
+     ver com o produto, o enquadramento nao se sustenta - foi o que derrubou gaze e
+     atadura na NCM 3005.90.90. Aqui isso vira alerta, nao veredito automatico. */
+  if(r.indefinido&&r.acao.indexOf('RISCO')!==0)
+    r.acao='Identificar qual item do anexo se aplica - a NCM cobre varios';
+  else if(r.enquadrado&&r.literal&&r.aderenciaTxt==='baixa'&&r.acao.indexOf('RISCO')!==0)
+    r.acao='Teste duplo: NCM consta do anexo, mas a descricao do item nao corresponde ao produto - conferir';
+}
+
+function marcarFinal(r){
+  var provado=(r.nivel==='A'||r.nivel==='B'||r.nivel==='C');
+  var negado=/NAO REGULARIZADO/.test(r.statusAnvisa);
+  /* O teste duplo reprovou: a NCM esta no anexo, a descricao nao. Nao e "fora do
+     beneficio" nem "enquadrado" - e uma pendencia de enquadramento. */
+  if(r.indefinido&&!r.enquadrado){
+    r.situacaoFinal='ENQUADRAMENTO A IDENTIFICAR';
+    r.acao='A NCM cai em '+(r.alternativas?'anexos diferentes':'varios itens')+' - identificar qual se aplica';return;}
+  if(r.naoSustentado&&!r.enquadrado){
+    r.situacaoFinal='ENQUADRAMENTO NAO SUSTENTADO';
+    r.acao='O texto do item do anexo nao corresponde ao produto - conferir';return;}
+  /* O arquivo ja vem com um beneficio classificado, mas o texto do anexo nao
+     corresponde ao produto. E a divergencia que o estudo precisa ver primeiro:
+     e beneficio aproveitado sem suporte no anexo. */
+  if(r.enquadrado&&r.sustentado===false){
+    r.situacaoFinal='BENEFICIO SEM SUPORTE NO ANEXO';
+    r.acao='RISCO: o arquivo indica beneficio, mas o texto do anexo nao corresponde ao produto';return;}
+  if(!r.exigeAnvisa&&r.enquadrado){
+    r.situacaoFinal='ENQUADRADO - ANVISA NAO EXIGIDA';
+    r.acao='OK - este anexo nao exige regularizacao na Anvisa';return;}
+  if(r.nivel==='SB'){
+    r.situacaoFinal='SEM BENEFICIO - NAO CONSTA NA ANVISA';
+    r.acao='Tributar integralmente - as 3 consultas na Anvisa nao localizaram o produto';return;}
+  if(r.enquadrado&&provado){
+    r.situacaoFinal=r.nivel==='C'?'REGULARIZADO + ENQUADRADO (via IA)':'REGULARIZADO + ENQUADRADO';
+    r.acao=r.nivel==='C'?'Validar por amostragem':'OK';return;}
+  if(r.enquadrado&&negado){r.situacaoFinal='ENQUADRADO, MAS NAO REGULARIZADO';r.acao='RISCO: beneficio indevido';return;}
+  if(r.enquadrado){r.situacaoFinal='ENQUADRADO SEM PROVA';r.acao='RISCO: beneficio sem prova de regularizacao';return;}
+  if(provado){r.situacaoFinal='REGULARIZADO, MAS NAO ENQUADRADO';r.acao='Sem beneficio - prova dispensavel';return;}
+  r.situacaoFinal='FORA DO BENEFICIO';r.acao='Sem beneficio - prova dispensavel';}
+
+/* ===================== saida ===================== */
+var CAB_OUT=['Arquivo origem','NCM','Codigo','Produto','Qtde','Valor R$','Linhas de nota','Situacao de entrada','Anexo LC 214','Item','Beneficio LC 214',
+  'Hipotese tributaria','Texto do anexo','Aderencia da descricao','Outros anexos possiveis','cClassTrib','Enquadrado','Status ANVISA','Numero ANVISA','Nivel de prova','Forca',
+  'Fonte da evidencia','Arquivo fonte','Data da base ANVISA','Metodo de correspondencia','Confianca',
+  'Conferido por','CNPJ fornecedor','Fornecedor','Justificativa','Situacao final','Acao','Trilha de consulta ANVISA'];
+
+function linhaArray(r){return [r.origem,r.ncm,r.cod,r.prod,r.qtde||'',r.valor||'',r.ocorrencias,r.sitEntrada,r.anexo,r.item,r.benef,r.hipotese,
+  r.literal,(r.aderenciaTxt?r.aderenciaTxt+' ('+r.aderencia+')':''),r.alternativas,r.ccl,r.enquadrado?'SIM':'NAO',r.statusAnvisa,r.numero,r.nivel,r.forca,r.fonte,r.arquivoFonte,
+  r.dataBase||'',r.metodo,r.confianca,r.conferidoPor,r.cnpj,r.forn,r.justificativa,r.situacaoFinal,r.acao,r.trilha||''];}
+
+var CAB_DEC=['Arquivo origem','Produto','NCM','Item LC 214','Anexo','ANVISA','Regularizacao','Evidencia','Beneficio','cClassTrib','Status'];
+function linhaDecisao(r){
+  var st=r.acao.indexOf('RISCO')===0?'RISCO':(r.nivel==='SB'?'SEM BENEFICIO':(r.nivel==='C'||r.nivel==='D'?'REVISAR':'OK'));
+  var m=r.statusAnvisa.match(/\((registro|cadastro|notificacao)\)/);
+  return [r.origem,r.prod,r.ncm,r.item,r.anexo,r.nivel==='SB'?'Nao consta':(r.nivel==='D'?'Nao localizado':'Sim'),
+          m?m[1]:(/ISENTO/.test(r.statusAnvisa)?'Isento':(/REGISTRO/.test(r.statusAnvisa)?'Registro':'-')),
+          r.nivel==='C'?'IA + ANVISA':(r.arquivoFonte||'-'),r.benef||'-',r.ccl||'-',st];}
+
+function classeStatus(s){
+  if(/NAO EXIGIDA/.test(s))return 't-na';
+  if(/NAO CONSTA/.test(s))return 't-mut';
+  if(/NAO REGULARIZADO/.test(s))return 't-err';
+  if(/^REGISTRO|^REGULARIZADO/.test(s))return 't-ok';
+  if(/^ISENTO/.test(s))return 't-mut';
+  if(/^PROVAVEL/.test(s))return 't-warn';
+  return 't-err';}
+function classeFinal(s){
+  if(/^SEM BENEFICIO/.test(s))return 't-mut';
+  if(/A IDENTIFICAR|NAO SUSTENTADO/.test(s))return 't-warn';
+  if(/SEM SUPORTE NO ANEXO/.test(s))return 't-err';
+  if(/RISCO|NAO REGULARIZADO/.test(s))return 't-err';
+  if(/via IA/.test(s))return 't-warn';
+  if(/REGULARIZADO \+ ENQUADRADO|ANVISA NAO EXIGIDA/.test(s))return 't-ok';
+  if(/SEM PROVA/.test(s))return 't-err';
+  return 't-mut';}
+
+
+/* ===================== impacto tributario =====================
+   Tres cenarios sobre a mesma receita:
+   1. HOJE      - carga atual informada no passo 4 (PIS/COFINS + ICMS efetivo);
+   2. REFORMA CHEIA - aliquota de referencia IBS+CBS, sem nenhum beneficio;
+   3. REFORMA COM BENEFICIO - so entra quem tem o direito demonstrado. Produto
+      enquadrado sem prova (nivel D) nao entra no cenario conservador: aparece
+      separado como potencial, que e o que a empresa ganha se comprovar. */
+function param(){
+  var ref=parseFloat((document.getElementById('aliqRef')||{}).value);
+  var hoje=parseFloat((document.getElementById('cargaHoje')||{}).value);
+  return{ref:(isNaN(ref)?26.5:ref)/100,hoje:(isNaN(hoje)?9.25:hoje)/100};}
+
+function aliqBenef(r,REF){
+  var b=norm(r.benef);
+  if(/ALIQUOTA ZERO/.test(b))return 0;
+  if(/REDUCAO DE 60/.test(b))return REF*0.40;
+  if(/REDUCAO DE 30/.test(b))return REF*0.70;
+  return REF;}
+
+/* direito demonstrado: enquadrado na LC 214 e com a Etapa A fechada (ou dispensada) */
+/* Direito demonstrado exige as duas pontas: enquadramento que se sustenta no
+   texto do anexo E a Etapa A fechada (ou dispensada pelo anexo). Beneficio que
+   veio do arquivo mas nao se sustenta no anexo nao entra em cenario nenhum. */
+function temDireito(r){return !!r.enquadrado&&r.sustentado!==false&&
+  (r.nivel==='A'||r.nivel==='B'||r.nivel==='C'||r.nivel==='NA');}
+function ehPotencial(r){return !!r.enquadrado&&r.sustentado!==false&&r.nivel==='D';}
+function enquadramentoAConferir(r){return !!(r.indefinido||r.naoSustentado||r.sustentado===false);}
+
+function rotuloDireito(r){
+  if(temDireito(r))return 'TEM DIREITO';
+  if(r.enquadrado&&r.sustentado===false)return 'BENEFICIO SEM SUPORTE NO ANEXO';
+  if(enquadramentoAConferir(r))return 'ENQUADRAMENTO A CONFERIR';
+  if(ehPotencial(r))return 'DIREITO A COMPROVAR';
+  if(r.nivel==='SB')return 'SEM DIREITO - NAO CONSTA NA ANVISA';
+  if(r.enquadrado)return 'DIREITO NEGADO';
+  return 'SEM DIREITO - FORA DOS ANEXOS';}
+
+function rotuloBenef(r){
+  var b=norm(r.benef);
+  if(/ALIQUOTA ZERO/.test(b))return 'Aliquota zero';
+  if(/REDUCAO DE 60/.test(b))return 'Reducao de 60%';
+  if(/REDUCAO DE 30/.test(b))return 'Reducao de 30%';
+  return 'Sem beneficio';}
+
+/* O "porque" da interpretacao, em uma frase, com a base legal no fim. */
+function baseLegal(r){
+  var p=[];
+  /* O teste duplo reprovou: dizer "fora dos anexos" seria falso - a NCM esta la,
+     o que nao corresponde e a descricao do item. */
+  if(enquadramentoAConferir(r)){
+    var t='LC 214/2025 - a NCM consta do Anexo '+String(r.anexo||'-').replace(/^Anexo\s*/i,'')+
+      ', mas '+(r.indefinido
+        ? 'cai em varios itens e nenhum tem palavra em comum com a descricao do produto'
+        : 'o texto do item nao corresponde a este produto');
+    if(r.itemPossivel)t+=' | enquadramento possivel, nao confirmado: item '+r.itemPossivel+
+      (r.benefPossivel?' ('+r.benefPossivel+')':'');
+    if(r.alternativas)t+=' | tambem possivel: '+r.alternativas;
+    if(r.enquadrado)t+=' | o arquivo de origem indica '+r.benef+' - conferir antes de aproveitar';
+    return t+'.';}
+  if(!r.enquadrado)
+    return 'NCM fora dos anexos de beneficio da LC 214/2025 - tributacao integral pela aliquota de referencia.';
+  if(r.hipotese)p.push(r.hipotese);
+  if(r.anexo&&r.anexo!=='-')p.push('Anexo '+String(r.anexo).replace(/^Anexo\s*/i,'')+(r.item?', item '+r.item:''));
+  if(r.literal&&!r.indefinido)p.push('texto do anexo: "'+String(r.literal).slice(0,160)+'"');
+  if(r.indefinido)p.push('a NCM consta em varios itens do anexo e o item aplicavel ainda nao foi identificado');
+  if(!r.exigeAnvisa)p.push('este anexo nao condiciona o beneficio a regularizacao na Anvisa');
+  else if(r.nivel==='A'||r.nivel==='B')p.push('regularizacao na Anvisa comprovada'+(r.numero&&r.numero!=='-'?' - registro '+r.numero:'')+' ('+(r.fonte||'-')+')');
+  else if(r.nivel==='C')p.push('regularizacao na Anvisa confirmada com apoio de IA sobre a base oficial - sujeita a revisao por amostragem');
+  else if(r.nivel==='SB')p.push('produto nao localizado na base oficial da Anvisa nas tres consultas (codigo/GTIN, nome x texto do anexo, nome do produto) - art. 131, §1o exige a regularizacao');
+  else p.push('regularizacao na Anvisa ainda nao comprovada - art. 131, §1o condiciona o beneficio a ela');
+  return 'LC 214/2025 - '+p.join(' | ')+'.';}
+
+function calcularValores(){
+  var P=param(),REF=P.ref,t={receita:0,hoje:0,cheia:0,com:0,pot:0,temValor:false},seg={};
+  ST.resultado.forEach(function(r){
+    var v=r.valor||0;if(v)t.temValor=true;
+    var aB=aliqBenef(r,REF),dir=temDireito(r),pot=dir||ehPotencial(r);
+    r.aliqHoje=P.hoje;r.aliqRefCheia=REF;r.aliqRefEfetiva=dir?aB:REF;
+    r.impHoje=v*P.hoje;r.impCheia=v*REF;r.impCom=v*r.aliqRefEfetiva;r.impPot=v*(pot?aB:REF);
+    r.economia=r.impCheia-r.impCom;
+    r.direito=rotuloDireito(r);r.tipoBenef=rotuloBenef(r);r.baseLegal=baseLegal(r);
+    t.receita+=v;t.hoje+=r.impHoje;t.cheia+=r.impCheia;t.com+=r.impCom;t.pot+=r.impPot;
+    var k=dir?r.tipoBenef:(ehPotencial(r)?'A comprovar ('+r.tipoBenef+')':'Sem beneficio');
+    var g=seg[k]||(seg[k]={rot:k,produtos:0,receita:0,hoje:0,cheia:0,com:0});
+    g.produtos++;g.receita+=v;g.hoje+=r.impHoje;g.cheia+=r.impCheia;g.com+=r.impCom;});
+  t.seg=Object.keys(seg).map(function(k){return seg[k];})
+    .sort(function(a,b){return b.receita-a.receita||b.produtos-a.produtos;});
+  ST.tot=t;return t;}
+
+function brl(v){return 'R$ '+(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function brl0(v){return 'R$ '+Math.round(v||0).toLocaleString('pt-BR');}
+function pct(v){return (100*(v||0)).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'%';}
+
+function painelValores(){
+  var t=ST.tot,P=param(),el=document.getElementById('blocoValor');
+  if(!t.temValor){
+    el.hidden=false;
+    document.getElementById('painelValor').innerHTML=
+      '<div class="box b-pri inerte"><b>-</b><span>informe a coluna de valor no passo 1 para ver os numeros</span></div>';
+    document.getElementById('tbSeg').innerHTML='';
+    document.getElementById('valorNota').textContent=
+      'Sem a coluna de valor a ferramenta classifica normalmente, mas nao consegue calcular imposto.';
+    return;}
+  el.hidden=false;
+  var eco=t.cheia-t.com,ecoPot=t.cheia-t.pot;
+  function cx(cls,num,rot){return '<div class="box '+cls+' inerte"><b>'+num+'</b><span>'+rot+'</span></div>';}
+  document.getElementById('painelValor').innerHTML=
+    cx('b-pri',brl0(t.receita),'receita analisada')+
+    cx('b-pri',brl0(t.hoje),'tributacao hoje ('+pct(P.hoje)+')')+
+    cx('b-err',brl0(t.cheia),'na reforma sem beneficio ('+pct(P.ref)+')')+
+    cx('b-ok',brl0(t.com),'na reforma com o beneficio comprovado')+
+    cx('b-ok',brl0(eco),'economia ja comprovada')+
+    (ecoPot>eco?cx('b-warn',brl0(ecoPot-eco),'economia adicional se comprovar as pendencias'):'');
+
+  var tot={produtos:0,receita:0,hoje:0,cheia:0,com:0};
+  t.seg.forEach(function(g){tot.produtos+=g.produtos;tot.receita+=g.receita;tot.hoje+=g.hoje;tot.cheia+=g.cheia;tot.com+=g.com;});
+  document.getElementById('tbSeg').innerHTML=
+    '<thead><tr><th>Segregacao da receita</th><th>Produtos</th><th>Receita</th><th>% da receita</th>'+
+    '<th>Hoje</th><th>Reforma sem beneficio</th><th>Reforma com beneficio</th><th>Diferenca vs. hoje</th></tr></thead><tbody>'+
+    t.seg.map(function(g){
+      var d=g.com-g.hoje;
+      return '<tr><td><b>'+esc(g.rot)+'</b></td><td>'+g.produtos.toLocaleString('pt-BR')+'</td><td>'+brl(g.receita)+'</td>'+
+        '<td>'+(tot.receita?pct(g.receita/tot.receita):'-')+'</td><td>'+brl(g.hoje)+'</td><td>'+brl(g.cheia)+'</td>'+
+        '<td>'+brl(g.com)+'</td><td style="color:'+(d>0?'var(--err)':'var(--ok)')+'">'+(d>0?'+':'')+brl(d)+'</td></tr>';}).join('')+
+    '<tr style="background:var(--bg);font-weight:700"><td>TOTAL</td><td>'+tot.produtos.toLocaleString('pt-BR')+'</td><td>'+brl(tot.receita)+
+    '</td><td>100,00%</td><td>'+brl(tot.hoje)+'</td><td>'+brl(tot.cheia)+'</td><td>'+brl(tot.com)+'</td><td>'+
+    ((tot.com-tot.hoje)>0?'+':'')+brl(tot.com-tot.hoje)+'</td></tr></tbody>';
+  document.getElementById('valorNota').textContent=
+    'Simulacao sobre a receita dos produtos analisados, com aliquota de referencia de '+pct(P.ref)+
+    ' e carga atual de '+pct(P.hoje)+' (os dois percentuais sao editados no passo 4). '+
+    'O cenario "com beneficio" so considera produto com direito demonstrado - pendente de conferencia entra como economia adicional.';}
+
+function render(){
+  var res=ST.resultado;
+  calcularValores();
+  var enq=res.filter(function(r){return r.enquadrado;});
+  var n={A:0,B:0,C:0,D:0,NA:0,SB:0};res.forEach(function(r){n[r.nivel]=(n[r.nivel]||0)+1;});
+  var risco=res.filter(function(r){return r.acao.indexOf('RISCO')===0;}).length;
+  var enqA=enq.filter(function(r){return r.nivel==='A'||r.nivel==='B';}).length;
+  var enqC=enq.filter(function(r){return r.nivel==='C';}).length;
+  var enqD=enq.filter(function(r){return r.nivel==='D';}).length;
+  var enqNA=enq.filter(function(r){return r.nivel==='NA';}).length;
+  var enqSB=enq.filter(function(r){return r.nivel==='SB';}).length;
+  var aIdent=res.filter(function(r){return /A IDENTIFICAR|NAO SUSTENTADO|SEM SUPORTE NO ANEXO/.test(r.situacaoFinal);}).length;
+
+  document.getElementById('painel').hidden=false;
+  var valorTotal=0,temValor=false;
+  res.forEach(function(r){if(r.valor){valorTotal+=r.valor;temValor=true;}});
+  function brl(v){return 'R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});}
+  var valEnq=0;enq.forEach(function(r){valEnq+=r.valor||0;});
+  ST.filtroAtual='';
+  function cx(cls,valor,num,rot,inerte){
+    return '<div class="box '+cls+(inerte?' inerte':'')+'"'+(inerte?'':' data-filtro="'+esc(valor)+'"')+
+           '><b>'+num+'</b><span>'+rot+'</span></div>';}
+  document.getElementById('painel').innerHTML=
+    cx('b-pri','',res.length,'produtos analisados')+
+    (temValor?cx('b-pri','',brl(valorTotal),'valor movimentado',true)+
+              cx('b-ok','ENQ',brl(valEnq),'valor com beneficio potencial'):'')+
+    cx('b-pri','ENQ',enq.length,'enquadrados na LC 214')+
+    (aIdent?cx('b-warn','AID',aIdent,'enquadramento a conferir'):'')+
+    cx('b-ok','AB',enqA,'comprovacao suficiente (A e B)')+
+    cx('b-warn','NC',enqC,'assistida por IA (C)')+
+    cx('b-baixa','ND',enqD,'pendentes de conferencia (D)')+
+    (enqNA?cx('b-pri','NNA',enqNA,'ANVISA nao exigida'):'')+
+    (enqSB?cx('b-baixa','NSB',enqSB,'sem beneficio - nao consta na Anvisa'):'')+
+    cx('b-err','RISCO',risco,'em risco')+
+    (ST.arquivos.length>1?cx('b-pri','',ST.arquivos.length,'arquivos no lote',true):'');
+
+  Array.prototype.forEach.call(document.querySelectorAll('#painel .box[data-filtro]'),function(b){
+    b.addEventListener('click',function(){aplicarFiltro(b.getAttribute('data-filtro'));});});
+
+  var cont={};res.forEach(function(r){cont[r.situacaoFinal]=(cont[r.situacaoFinal]||0)+1;});
+  var f=document.getElementById('filtro');
+  f.innerHTML='<option value="">Todos ('+res.length+')</option>'+
+    '<option value="ENQ">Enquadrados na LC 214 ('+enq.length+')</option>'+
+    (aIdent?'<option value="AID">Enquadramento a conferir ('+aIdent+')</option>':'')+
+    '<option value="AB">Comprovacao suficiente - niveis A e B ('+enqA+')</option>'+
+    '<option value="NC">Assistida por IA - nivel C ('+enqC+')</option>'+
+    '<option value="ND">Pendentes de conferencia - nivel D ('+enqD+')</option>'+
+    (enqNA?'<option value="NNA">ANVISA nao exigida ('+enqNA+')</option>':'')+
+    (enqSB?'<option value="NSB">Sem beneficio - nao consta na Anvisa ('+enqSB+')</option>':'')+
+    '<option value="RISCO">Em risco ('+risco+')</option>'+
+    ['A','B','C','D'].map(function(k){return '<option value="N'+k+'">Nivel '+k+' ('+(n[k]||0)+')</option>';}).join('')+
+    Object.keys(cont).map(function(k){return '<option value="S'+esc(k)+'">'+esc(k)+' ('+cont[k]+')</option>';}).join('')+
+    (ST.arquivos.length>1?ST.arquivos.map(function(a){
+      var q=res.filter(function(r){return r.origem===a.nome;}).length;
+      return '<option value="F'+esc(a.nome)+'">Arquivo: '+esc(a.nome)+' ('+q+')</option>';}).join(''):'');
+
+  /* Sem a lista da Anvisa e sem XML nao existe prova direta nem cruzada: por
+     construcao, todo produto que exige Anvisa fica em D. Quem abre o resultado
+     sem saber disso acha que a ferramenta falhou. */
+  var av=document.getElementById('avisoProva');
+  var temBase=!!ST.base.length,temXml=!!ST.xml.length;
+  if(!temBase&&!temXml){
+    av.hidden=false;
+    av.innerHTML='<b>Nenhum produto pode chegar aos niveis A ou B nesta execucao.</b><br>'+
+      'A prova direta vem do registro informado no XML da NF-e e a prova cruzada vem da lista '+
+      'oficial da Anvisa - nenhum dos dois foi carregado. Todo produto que depende da Anvisa fica '+
+      'em <b>D</b>, e os que aparecem como <b>NA</b> sao os anexos que nao exigem regularizacao. '+
+      'Carregue o passo 2 (XMLs) e o passo 3 (lista da Anvisa) para a Etapa A sair do lugar.';
+  }else if(!temBase){
+    av.hidden=false;
+    av.innerHTML='<b>A lista oficial da Anvisa nao foi carregada.</b> Sem ela so ha prova direta '+
+      'pelo XML da NF-e: os produtos sem registro informado na nota ficam em D. Passo 3.';
+  }else if(!temXml){
+    av.hidden=false;
+    av.innerHTML='<b>Nenhum XML de NF-e foi carregado.</b> A prova de nivel A pelo registro '+
+      'informado na nota nao entra nesta execucao. Passo 2.';
+  }else av.hidden=true;
+  painelValores();
+  desenhar('');
+  document.getElementById('res').hidden=false;
+  document.getElementById('tbwrap').hidden=false;
+  if(!ST._rolou){ST._rolou=true;setTimeout(function(){
+    var el=document.getElementById('res');
+    try{if(el&&el.scrollIntoView)el.scrollIntoView({behavior:'smooth',block:'start'});}catch(e){}},120);}
+  ['btCsv','btCsvAud','btSheet','btRel','btEnxuta','btRelCli'].forEach(function(id){document.getElementById(id).disabled=false;});
+  avaliarIA();}
+
+function desenhar(filtro){
+  var rows=ST.resultado;
+  if(filtro==='ENQ')rows=rows.filter(function(r){return r.enquadrado;});
+  else if(filtro==='AB')rows=rows.filter(function(r){return r.enquadrado&&(r.nivel==='A'||r.nivel==='B');});
+  else if(filtro==='NC')rows=rows.filter(function(r){return r.enquadrado&&r.nivel==='C';});
+  else if(filtro==='ND')rows=rows.filter(function(r){return r.enquadrado&&r.nivel==='D';});
+  else if(filtro==='AID')rows=rows.filter(function(r){return /A IDENTIFICAR|NAO SUSTENTADO|SEM SUPORTE NO ANEXO/.test(r.situacaoFinal);});
+  else if(filtro==='NNA')rows=rows.filter(function(r){return r.nivel==='NA';});
+  else if(filtro==='NSB')rows=rows.filter(function(r){return r.nivel==='SB';});
+  else if(filtro==='RISCO')rows=rows.filter(function(r){return r.acao.indexOf('RISCO')===0;});
+  else if(filtro.indexOf('N')===0)rows=rows.filter(function(r){return r.nivel===filtro.slice(1);});
+  else if(filtro.indexOf('S')===0)rows=rows.filter(function(r){return r.situacaoFinal===filtro.slice(1);});
+  else if(filtro.indexOf('F')===0)rows=rows.filter(function(r){return r.origem===filtro.slice(1);});
+  var lim=rows.slice(0,800);
+  var multi=ST.arquivos.length>1;
+  var temV=!!(ST.tot&&ST.tot.temValor);
+  var cols=(multi?['Arquivo']:[]).concat(['NCM','Produto','Anexo','Status ANVISA','Nivel','Situacao final','Acao'])
+    .concat(temV?['Receita','Hoje','Na reforma']:[]).concat(['Evidencia']);
+  var h='<thead><tr>'+cols.map(function(c){return '<th>'+c+'</th>';}).join('')+'</tr></thead><tbody>';
+  h+=lim.map(function(r){
+    var i=ST.resultado.indexOf(r);
+    return '<tr>'+
+      (multi?'<td>'+esc(r.origem)+'</td>':'')+
+      '<td>'+esc(r.ncm)+'</td>'+
+      '<td>'+esc(r.prod)+'</td>'+
+      '<td>'+esc(r.anexo||'-')+(r.indefinido?' <span class="tag t-warn">varios itens</span>':
+        (r.item?' <span class="hint" style="margin:0">item '+esc(r.item)+'</span>':''))+'</td>'+
+      '<td><span class="tag '+classeStatus(r.statusAnvisa)+'">'+esc(r.statusAnvisa)+'</span></td>'+
+      '<td><span class="niv n-'+r.nivel+'">'+r.nivel+'</span></td>'+
+      '<td><span class="tag '+classeFinal(r.situacaoFinal)+'">'+esc(r.situacaoFinal)+'</span></td>'+
+      '<td>'+esc(r.acao)+'</td>'+
+      (temV?'<td style="text-align:right;white-space:nowrap">'+brl(r.valor||0)+'</td>'+
+            '<td style="text-align:right;white-space:nowrap">'+brl(r.impHoje||0)+'</td>'+
+            '<td style="text-align:right;white-space:nowrap;font-weight:600;color:'+
+              ((r.impCom||0)<(r.impHoje||0)?'var(--ok)':'var(--err)')+'">'+brl(r.impCom||0)+'</td>':'')+
+      '<td><button class="sec" style="padding:3px 8px;font-size:11px" onclick="verEvidencia('+i+')">Ver</button></td>'+
+      '</tr>';}).join('');
+  h+='</tbody>';
+  document.getElementById('tb').innerHTML=h;
+  var lbl=document.getElementById('contFiltro');
+  if(lbl)lbl.textContent=filtro
+    ? rows.length.toLocaleString('pt-BR')+' de '+ST.resultado.length.toLocaleString('pt-BR')+' produtos - clique no bloco de novo para tirar o filtro'
+    : ST.resultado.length.toLocaleString('pt-BR')+' produtos - clique num bloco acima para filtrar';
+  if(rows.length>800)log('exibindo 800 de '+rows.length+' linhas (o CSV sai completo).');}
+
+/* Clicar num bloco do painel filtra a tabela. Clicar de novo no mesmo bloco
+   volta para todos - e o jeito que as pessoas esperam que funcione. */
+function aplicarFiltro(valor){
+  if(ST.filtroAtual===valor)valor='';
+  ST.filtroAtual=valor;
+  var f=document.getElementById('filtro');
+  var existe=Array.prototype.some.call(f.options,function(o){return o.value===valor;});
+  f.value=existe?valor:'';
+  Array.prototype.forEach.call(document.querySelectorAll('#painel .box'),function(b){
+    b.classList.toggle('ativo',!!valor&&b.getAttribute('data-filtro')===valor);});
+  desenhar(valor);
+  var el=document.getElementById('tbwrap');
+  try{if(el&&el.scrollIntoView)el.scrollIntoView({behavior:'smooth',block:'nearest'});}catch(e){}}
+
+document.getElementById('otimista').addEventListener('change',function(){
+  if(ST.resultado&&ST.resultado.length){log('recalculando no cenario '+(this.checked?'otimista':'conservador')+'...');processar();}});
+document.getElementById('filtro').addEventListener('change',function(e){
+  ST.filtroAtual='';aplicarFiltro(e.target.value);});
+
+function verEvidencia(i){
+  var r=ST.resultado[i];if(!r)return;
+  var campos=[['Arquivo de origem',r.origem||'-'],['Produto',r.prod],['NCM',r.ncm],['Codigo/GTIN',r.cod],
+    ['Etapa B - Anexo LC 214',r.anexo||'-'],['Item',r.item||(r.indefinido?'indefinido - a NCM cobre varios itens':'-')],['Hipotese',r.hipotese||'-'],['Texto do anexo',r.literal||'-'],
+    ['Aderencia da descricao',r.aderenciaTxt?(r.aderenciaTxt+' ('+r.aderencia+')'):'-'],
+    ['Outros anexos possiveis',r.alternativas||'-'],
+    ['Enquadramento possivel, nao confirmado',
+      r.benefPossivel?('Anexo '+r.anexo+(r.itemPossivel?' item '+r.itemPossivel:'')+' - '+r.benefPossivel+
+        ' ('+r.hipotesePossivel+')'):'-'],
+    ['Codigo p/ a nota (cClassTrib)',r.ccl||'-'],
+    ['Beneficio',r.benef||'-'],['Enquadrado',r.enquadrado?'Sim':'Nao'],
+    ['Etapa A - Status ANVISA',r.statusAnvisa],['Numero ANVISA',r.numero||'-'],
+    ['Nivel de prova',r.nivel+' ('+r.forca+')'],['Fonte',r.fonte||'-'],
+    ['Arquivo fonte',r.arquivoFonte||'-'],['Data da base ANVISA',r.dataBase||'-'],
+    ['Chave utilizada',r.metodo||'-'],['Confianca',r.confianca||'-'],
+    ['Trilha de consulta',r.trilha||'-'],
+    ['IA utilizada',/IA/.test(r.fonte)?'Sim':'Nao'],['Conferido por',r.conferidoPor||'-'],
+    ['Fornecedor',(r.forn||'-')+(r.cnpj?' | CNPJ '+r.cnpj:'')],
+    ['Justificativa',r.justificativa||'-'],['Situacao final',r.situacaoFinal],['Acao',r.acao]];
+  document.getElementById('mdTitulo').textContent='Evidencia - '+r.prod;
+  document.getElementById('mdCorpo').innerHTML=campos.map(function(c){
+    return '<dt>'+esc(c[0])+'</dt><dd>'+esc(c[1])+'</dd>';}).join('')+
+    (r.cascata?'<dt>Consulta na ANVISA (3 niveis, nesta ordem)</dt><dd>'+r.cascata.map(function(p){
+      var cor=p.res==='ENCONTROU'?'var(--ok)':(p.res==='NAO ENCONTROU'?'var(--err)':'var(--mut)');
+      return '<div style="margin-bottom:7px">'+p.n+'. '+esc(p.rot)+' &mdash; '+
+        (p.termo?'<b>'+esc(p.termo)+'</b>':'<i>sem dado</i>')+
+        ' <span style="color:'+cor+';font-weight:600">'+esc(p.res)+'</span>'+
+        (p.url?' &middot; <a href="'+esc(p.url)+'" target="_blank" rel="noopener" style="color:var(--v600);font-weight:600">abrir no site</a>':'')+
+        '<div class="hint" style="margin:2px 0 0">'+esc(p.obs)+'</div></div>';}).join('')+
+      (r.nivel==='SB'
+        ?'<div class="hint" style="margin-top:4px">Os tres niveis foram consultados e nenhum localizou o produto. Como o anexo condiciona o beneficio a regularizacao na Anvisa, a ferramenta conclui pela tributacao integral. Se a conferencia no site encontrar o registro, cadastre na aba CADASTRO_MANUAL: o produto passa a nivel A.</div>'
+        :'<div class="hint" style="margin-top:4px">Os links abrem a consulta oficial ja preenchida. Lista vazia no site significa que o produto nao consta como dispositivo medico regularizado.</div>')+
+      '</dd>':'')+
+    (r.nivel==='NA'?'<dt>Por que nao exige ANVISA</dt><dd>'+esc(r.hipotese||'')+
+      '<div class="hint" style="margin-top:4px">Este anexo nao condiciona o beneficio a regularizacao sanitaria. So o Anexo IV (art. 131, §1o), o Anexo XII, o Anexo XIV e os medicamentos do art. 133 exigem.</div></dd>':'');
+  document.getElementById('modal').hidden=false;}
+
+/* ============ cascata de consulta na Anvisa ============
+   A ordem e a que a Vicky definiu conferindo produto a produto:
+   1. Codigo/GTIN do fornecedor - a chave mais forte, quando existe;
+   2. nome do produto X texto do anexo - a palavra que os dois tem em comum
+      ("FRALDA GER VIDA CONFORT M20" contra "Fraldas e artigos higienicos" da
+      "FRALDA"), que e exatamente o que se digita no site;
+   3. as duas primeiras palavras do nome do produto ("AGULHA DESCARTAVEL"),
+      para o caso de o anexo nao ter palavra em comum.
+   Cada nivel e conferido na base oficial da Anvisa e fica registrado com o
+   link pronto para a conferencia humana no site. */
+function termoIntersec(tkProd,literal){
+  var tl=literal?tokens(literal):[],comum=[],i;
+  for(i=0;i<tkProd.length&&comum.length<2;i++)
+    if(tkProd[i].length>3&&tl.indexOf(tkProd[i])>=0)comum.push(tkProd[i]);
+  return comum.join(' ');}
+
+function palavrasIniciais(tkProd,bruto){
+  var i=0;
+  while(i<tkProd.length&&(tkProd[i].length<=3||/^\d/.test(tkProd[i])))i++;
+  if(i>=tkProd.length)return String(bruto||'').split(/\s+/).slice(0,2).join(' ');
+  /* so a palavra imediatamente seguinte entra: pular para a terceira produziria
+     "FRALDA VIDA" em "FRALDA GER VIDA CONFORT", que nao existe na Anvisa. */
+  var a=tkProd[i],b=tkProd[i+1];
+  return (b&&b.length>3&&!/^\d/.test(b)&&b!==a)?(a+' '+b):a;}
+
+/* Procura na base oficial os registros cujo nome contem TODAS as palavras do
+   termo - o mesmo criterio do campo "nome do produto" do site da Anvisa. */
+function buscarTermoBase(termo,lista,idx){
+  var vazio={qtd:0,exemplo:null};
+  if(!termo||!lista||!lista.length)return vazio;
+  var memo=ST.memoTermo||(ST.memoTermo={});
+  if(memo[termo])return memo[termo];
+  var tk=tokens(termo),post=[],vis={},k,i;
+  if(!tk.length)return vazio;
+  for(k=0;k<tk.length;k++){if(vis[tk[k]])continue;vis[tk[k]]=1;
+    if(!idx[tk[k]])return(memo[termo]=vazio);post.push(idx[tk[k]]);}
+  post.sort(function(a,b){return a.length-b.length;});
+  var atual=post[0];
+  for(k=1;k<post.length&&atual.length;k++){
+    var m={},novo=[];
+    for(i=0;i<post[k].length;i++)m[post[k][i]]=1;
+    for(i=0;i<atual.length;i++)if(m[atual[i]])novo.push(atual[i]);
+    atual=novo;}
+  var r={qtd:atual.length,exemplo:atual.length?lista[atual[0]]:null};
+  memo[termo]=r;return r;}
+
+function montarCascata(r,tk,prd,idxBase){
+  var temBase=!!(ST.base&&ST.base.length),passos=[],p;
+
+  /* nivel 1 - codigo/GTIN */
+  var achouCod=/GTIN exato|Codigo exato|Codigo\/GTIN exato/.test(r.metodo||''),
+      hitCod=(temBase&&r.cod)?(ST.porCodBase[gtinNorm(r.cod)]||ST.porCodBase[norm(r.cod)]||null):null;
+  if(r.cod)
+    passos.push({n:1,rot:'Codigo/GTIN',termo:r.cod,url:urlAnvisa(r.cod),
+      res:(achouCod||hitCod)?'ENCONTROU':'NAO ENCONTROU',
+      obs:hitCod?('consta na base com o registro '+hitCod.reg)
+         :(achouCod?('prova ja obtida por esta chave'+(r.numero?' - registro '+r.numero:''))
+                   :'o codigo do fornecedor nao consta da base da Anvisa (o GTIN nao e a chave da Anvisa, entao isso e comum)')});
+  else
+    passos.push({n:1,rot:'Codigo/GTIN',termo:'',url:'',res:'SEM DADO',
+      obs:'o arquivo de produtos nao trouxe codigo nem GTIN para este item'});
+
+  /* nivel 2 - nome do produto x texto do anexo */
+  var t2=termoIntersec(tk,r.literal);
+  if(t2){var b2=buscarTermoBase(t2,ST.base,idxBase);
+    passos.push({n:2,rot:'Nome do produto x texto do anexo',termo:t2,url:urlAnvisa(t2),
+      res:!temBase?'NAO CONSULTADO':(b2.qtd?'ENCONTROU':'NAO ENCONTROU'),
+      obs:!temBase?'base oficial da Anvisa nao carregada (passo 3 da ferramenta)'
+         :(b2.qtd?(b2.qtd.toLocaleString('pt-BR')+' produto(s) com esse nome na base - conferir qual corresponde')
+                 :'nenhum produto com esse nome na base oficial')});}
+  else
+    passos.push({n:2,rot:'Nome do produto x texto do anexo',termo:'',url:'',res:'SEM DADO',
+      obs:'a descricao do produto e o texto do anexo nao tem palavra em comum'});
+
+  /* nivel 3 - duas primeiras palavras do nome */
+  var t3=palavrasIniciais(tk,prd);
+  if(t3&&norm(t3)!==norm(t2)){var b3=buscarTermoBase(t3,ST.base,idxBase);
+    passos.push({n:3,rot:'Duas primeiras palavras do nome',termo:t3,url:urlAnvisa(t3),
+      res:!temBase?'NAO CONSULTADO':(b3.qtd?'ENCONTROU':'NAO ENCONTROU'),
+      obs:!temBase?'base oficial da Anvisa nao carregada (passo 3 da ferramenta)'
+         :(b3.qtd?(b3.qtd.toLocaleString('pt-BR')+' produto(s) com esse nome na base - conferir qual corresponde')
+                 :'nenhum produto com esse nome na base oficial')});}
+  else
+    passos.push({n:3,rot:'Duas primeiras palavras do nome',termo:t3||'',url:t3?urlAnvisa(t3):'',
+      res:'IGUAL AO NIVEL 2',obs:'mesmo termo do nivel anterior - nao ha o que consultar de novo'});
+
+  r.cascata=passos;
+  r.termo=t2||t3||'';
+  r.trilha=passos.map(function(x){
+    return x.n+') '+x.rot+(x.termo?' "'+x.termo+'"':'')+': '+x.res;}).join(' | ');
+  /* so conclui pela ausencia se algum nivel por nome chegou a ser consultado */
+  var achou=false,consultouNome=false;
+  for(var i=0;i<passos.length;i++){p=passos[i];
+    if(p.res==='ENCONTROU')achou=true;
+    if(p.n>1&&p.res==='NAO ENCONTROU')consultouNome=true;}
+  r.esgotou=temBase&&!achou&&consultouNome;}
+
+/* A consulta da Anvisa aceita o termo na propria URL. Sem isso a pagina abre em
+   branco e a pessoa tem de digitar de novo. */
+function urlAnvisa(termo){
+  return 'https://consultas.anvisa.gov.br/#/saude/q/?nomeProduto='+
+         encodeURIComponent(String(termo||'').toLowerCase());}
+
+function conferir(bt,termo){
+  window.open(urlAnvisa(termo),'_blank');
+  if(bt&&bt.textContent){var t=bt.textContent;bt.textContent='abrindo...';
+    setTimeout(function(){bt.textContent=t;},1200);}}
+
+/* ===================== motor de IA ===================== */
+document.getElementById('btModelos').addEventListener('click',function(){
+  log('consultando modelos...');
+  google.script.run.withSuccessHandler(function(r){
+    if(!r.ok){erro(r.erro);return;}
+    var sel=document.getElementById('modelo');
+    sel.innerHTML=r.modelos.map(function(m){return '<option value="'+esc(m)+'">'+esc(m)+'</option>';}).join('');
+    var pref=r.modelos.filter(function(m){return m.indexOf('flash')>0&&m.indexOf('lite')<0;});
+    if(pref.length)sel.value=pref[0];
+    log(r.modelos.length+' modelos disponiveis.');}).listarModelosIA();});
+
+function pendente(r){return r.nivel==='D';}
+function avaliarIA(){
+  google.script.run.withSuccessHandler(function(r){
+    var p=ST.resultado.filter(pendente).length;
+    var sel=document.getElementById('modelo');
+    if(r.modelo&&!sel.options.length)sel.appendChild(new Option(r.modelo,r.modelo));
+    var bloco=document.getElementById('blocoIA');
+    if(!p||!ST.resultado.length){bloco.hidden=true;return;}
+    bloco.hidden=false;
+    var pode=!!(r.tem&&ST.base.length);
+    document.getElementById('btIA').disabled=!pode;
+    document.getElementById('iaTitulo').textContent=p.toLocaleString('pt-BR')+' produto(s) ficaram sem confirmacao';
+    document.getElementById('iaInfo').textContent=!r.tem
+      ? 'Para usar a IA, a chave precisa estar preenchida no script (constante CHAVE_GEMINI).'
+      : (!ST.base.length
+         ? 'A lista oficial da ANVISA ainda esta sendo baixada (passo 3). Assim que terminar, este botao libera sozinho.'
+         : 'Ela compara cada um com ate cinco produtos parecidos da lista oficial e confirma o que for o mesmo item.');
+  }).temChaveIA();}
+
+document.getElementById('btIA').addEventListener('click',function(){
+  var bt=this,LOTE=12;
+  var conf=parseFloat(document.getElementById('confMin').value)||0.85;
+  var atrMin=parseInt(document.getElementById('atrMin').value,10)||2;
+  var modelo=document.getElementById('modelo').value;
+  ST.meta.usouIA=true;ST.meta.modelo=modelo;ST.meta.confMin=conf;
+  var alvos=[];ST.resultado.forEach(function(r,i){if(pendente(r))alvos.push(i);});
+  if(!alvos.length){log('nada pendente.');return;}
+  bt.disabled=true;
+  var wrap=document.getElementById('barIAWrap'),bar=document.getElementById('barIA');
+  wrap.hidden=false;bar.style.width='0%';
+  var pos=0,resolvidos=0,rejeitados=0,novosManual=[];
+
+  function proximo(){
+    if(pos>=alvos.length){
+      bar.style.width='100%';
+      log('IA: '+resolvidos+' aceitas, '+rejeitados+' rejeitadas, de '+alvos.length+' pendencias.');
+      if(novosManual.length){
+        google.script.run.withSuccessHandler(function(r){
+          log(r.ok?novosManual.length+' itens gravados em CADASTRO_MANUAL.':'[ERRO] '+r.erro);
+        }).anexarCadastroManual(novosManual);}
+      render();gravarLog('Concluido com IA');bt.disabled=false;return;}
+
+    var fatia=alvos.slice(pos,pos+LOTE),lote=[],mapa={};
+    fatia.forEach(function(i){
+      var r=ST.resultado[i],tk=tokens(r.prod);
+      var cands=topCandidatos(tk,ST.base,ST.idxBase||{},5);
+      if(!cands.length)return;
+      mapa[i]={};
+      var lista=cands.map(function(c){var id='c'+c.idx;mapa[i][id]=c.item;
+        return{id:id,nome:c.item.nome,registro:c.item.reg,situacao:c.item.sit,
+               fabricante:c.item.empresa,cnpj:c.item.cnpj,modelo:c.item.modelo};});
+      lote.push({i:i,produto:r.prod,ncm:r.ncm,codigo:r.cod,
+                 fornecedor:r.forn||'',cnpj_fornecedor:r.cnpj||'',candidatos:lista});});
+
+    if(!lote.length){pos+=LOTE;bar.style.width=Math.round(pos/alvos.length*100)+'%';proximo();return;}
+
+    google.script.run.withSuccessHandler(function(resp){
+      if(!resp.ok){erro(resp.erro);
+        if(resp.retry){log('aguardando 20s...');setTimeout(proximo,20000);return;}
+        bt.disabled=false;return;}
+      if(resp.modeloUsado&&resp.modeloUsado!==modelo){
+        log('modelo '+modelo+' indisponivel - usando '+resp.modeloUsado+'.');
+        modelo=resp.modeloUsado;ST.meta.modelo=modelo;
+        var sm=document.getElementById('modelo');
+        if(!Array.prototype.some.call(sm.options,function(o){return o.value===modelo;}))
+          sm.appendChild(new Option(modelo,modelo));
+        sm.value=modelo;}
+      (resp.itens||[]).forEach(function(d){
+        var r=ST.resultado[d.i];if(!r||!mapa[d.i])return;
+        var item=d.escolhido?mapa[d.i][d.escolhido]:null;      /* trava 1: id fora da lista */
+        var atrs=(d.atributos_compativeis||[]).filter(function(a){return !/descri|nome/i.test(a);});
+        var motivos=(d.motivos||[]).join(' | ');
+        if(!item){rejeitados++;r.justificativa='IA: nenhum candidato compativel';return;}
+        if(atrs.length<atrMin){                                 /* trava 2: so nome nao basta */
+          rejeitados++;
+          r.numero=item.reg;r.confianca=Number(d.confianca).toFixed(2);
+          r.fonte='Sugestao da IA rejeitada - confirmou apenas '+atrs.length+' atributo(s) alem do nome';
+          r.justificativa=motivos;return;}
+        if(d.confianca<conf){                                   /* trava 3: confianca */
+          rejeitados++;
+          r.numero=item.reg;r.confianca=Number(d.confianca).toFixed(2);
+          r.fonte='Sugestao da IA abaixo do corte de confianca';
+          r.justificativa=motivos;return;}
+        var tipo=/CADASTR|NOTIFIC/.test(norm(item.sit))?'cadastro':'registro';
+        r.statusAnvisa='REGULARIZADO ('+tipo+')';
+        r.numero=item.reg;r.nivel='C';r.forca=FORCA.C;
+        r.metodo='IA sobre candidatos da base ('+atrs.join(', ')+')';
+        r.fonte='Base oficial ANVISA + correspondencia validada pela IA';
+        r.arquivoFonte=ST.meta.arquivoBase;
+        r.confianca=Number(d.confianca).toFixed(2);
+        r.conferidoPor='IA '+modelo;
+        r.justificativa=motivos+(d.atributos_divergentes&&d.atributos_divergentes.length?
+          ' || divergencias: '+d.atributos_divergentes.join(', '):'');
+        r.termo='';concluir(r);resolvidos++;
+        novosManual.push([r.cod,r.prod,tipo.toUpperCase(),item.reg,item.val||'',
+                          'IA '+modelo,new Date(),motivos]);});
+      pos+=LOTE;bar.style.width=Math.round(pos/alvos.length*100)+'%';
+      setTimeout(proximo,400);
+    }).withFailureHandler(function(e){erro(String(e));bt.disabled=false;})
+      .classificarComIA(lote,modelo);}
+  proximo();});
+
+/* ===================== exportacao e relatorio ===================== */
+function contagens(){
+  var n={A:0,B:0,C:0,D:0};ST.resultado.forEach(function(r){n[r.nivel]++;});
+  return{a:n.A,b:n.B,c:n.C,dd:n.D,
+    produtos:ST.resultado.length,
+    enquadrados:ST.resultado.filter(function(r){return r.enquadrado;}).length,
+    risco:ST.resultado.filter(function(r){return r.acao.indexOf('RISCO')===0;}).length};}
+
+/* ===================== saida em CSV =====================
+   A planilha do resultado repete a tela: uma linha por produto, texto em uma
+   celula so e valor em numero. Todo texto passa por limpaCel - o texto literal
+   dos anexos tem ponto e virgula e quebra de linha, e era isso que espalhava o
+   conteudo pelas colunas erradas quando o Excel abria o arquivo. */
+function limpaCel(v){
+  return String(v==null?'':v).replace(/[\r\n\t]+/g,' ').replace(/;/g,',').replace(/\s{2,}/g,' ').trim();}
+function numCel(v){
+  if(v===''||v==null)return '';
+  var n=Number(v);if(isNaN(n))return limpaCel(v);
+  return n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2,useGrouping:false});}
+function montarCsv(linhas){
+  return '﻿'+linhas.map(function(l){return l.map(function(c){
+    var v=String(c==null?'':c);
+    return /[";]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;}).join(';');}).join('\r\n');}
+function baixarCsv(nome,linhas){
+  var a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(montarCsv(linhas));
+  a.download=nome;document.body.appendChild(a);a.click();a.remove();}
+
+function cabTela(){
+  return (ST.arquivos.length>1?['Arquivo']:[]).concat(
+    ['NCM','Codigo','Produto','Anexo','Item','Beneficio da LC 214','Direito ao beneficio',
+     'Status ANVISA','Nivel de prova','Situacao final','Acao','Receita R$','Tributacao hoje R$',
+     'Reforma sem beneficio R$','Reforma com beneficio R$','Economia R$','Base legal da interpretacao']);}
+function linhaTela(r){
+  return (ST.arquivos.length>1?[limpaCel(r.origem)]:[]).concat(
+    [limpaCel(r.ncm),limpaCel(r.cod),limpaCel(r.prod),limpaCel(r.anexo||'-'),
+     limpaCel(r.indefinido?'varios itens':(r.item||'-')),limpaCel(r.tipoBenef||r.benef),
+     limpaCel(r.direito),limpaCel(r.statusAnvisa),r.nivel,limpaCel(r.situacaoFinal),limpaCel(r.acao),
+     numCel(r.valor||0),numCel(r.impHoje||0),numCel(r.impCheia||0),numCel(r.impCom||0),
+     numCel(r.economia||0),limpaCel(r.baseLegal)]);}
+
+document.getElementById('btCsv').addEventListener('click',function(){
+  baixarCsv('resultado_lc214.csv',[cabTela()].concat(ST.resultado.map(linhaTela)));
+  log('planilha do resultado gerada: '+ST.resultado.length+' produtos, '+cabTela().length+' colunas.');});
+
+/* A completa continua existindo para auditoria - e a que tem trilha de consulta,
+   confianca, CNPJ do fornecedor e tudo o mais. */
+document.getElementById('btCsvAud').addEventListener('click',function(){
+  baixarCsv('auditoria_lc214.csv',
+    [CAB_OUT].concat(ST.resultado.map(function(r){return linhaArray(r).map(limpaCel);})));
+  log('planilha de auditoria gerada: '+CAB_OUT.length+' colunas.');});
+
+
+/* Lista enxuta: um produto por linha, com o que o estudo precisa. Serve para
+   guardar, mandar para o cliente e reprocessar depois sem carregar o relatorio
+   inteiro de novo. */
+document.getElementById('btEnxuta').addEventListener('click',function(){
+  var cab=['Codigo','NCM','Produto','UN','Qtde','Valor R$','Linhas de nota'];
+  var linhas=[cab].concat(ST.resultado.map(function(r){
+    return [r.cod,r.ncm,r.prod,'',r.qtde||'',r.valor||'',r.ocorrencias||1];}));
+  baixarCsv('produtos_lista_leve.csv',linhas.map(function(l){return l.map(limpaCel);}));
+  log('lista enxuta gerada: '+ST.resultado.length+' produtos.');});
+
+document.getElementById('btSheet').addEventListener('click',function(){
+  var b=this;b.disabled=true;log('gravando...');
+  google.script.run.withSuccessHandler(function(r){b.disabled=false;
+    r.ok?log('gravado: '+r.linhas+' linhas em '+r.abas.join(' e ')):erro(r.erro);})
+    .withFailureHandler(function(e){b.disabled=false;erro(String(e));})
+    .salvarResultado([CAB_OUT].concat(ST.resultado.map(linhaArray)),
+                     [CAB_DEC].concat(ST.resultado.filter(function(r){return r.enquadrado;}).map(linhaDecisao)));});
+
+/* ===================== relatorio do cliente =====================
+   Mesmo layout da ferramenta (paleta verde escuro), numeros primeiro e a lista
+   de produtos embaixo, com a base legal fechando cada linha. Sai como arquivo
+   HTML - abre em qualquer navegador, imprime em PDF e vai por e-mail. */
+function relatorioClienteHtml(){
+  var t=ST.tot||calcularValores(),P=param(),
+      emp=document.getElementById('empresa').value||'Cliente',
+      cnpj=document.getElementById('cnpjCli').value||'-',
+      per=document.getElementById('periodo').value||'-',
+      ver=document.getElementById('verAnexos').value||'',
+      hoje=new Date().toLocaleString('pt-BR'),
+      eco=t.cheia-t.com,ecoPot=(t.cheia-t.pot)-eco;
+  var ordem={'TEM DIREITO':0,'DIREITO A COMPROVAR':1,'BENEFICIO SEM SUPORTE NO ANEXO':2,
+             'ENQUADRAMENTO A CONFERIR':3,'SEM DIREITO - NAO CONSTA NA ANVISA':4,
+             'DIREITO NEGADO':5,'SEM DIREITO - FORA DOS ANEXOS':6};
+  var lista=ST.resultado.slice().sort(function(a,b){
+    var d=(ordem[a.direito]||9)-(ordem[b.direito]||9);
+    return d||((b.valor||0)-(a.valor||0));});
+  function cls(r){return r.direito==='TEM DIREITO'?'ok':
+    (/A COMPROVAR|A CONFERIR|SEM SUPORTE/.test(r.direito)?'warn':'mut');}
+  var linhas=lista.map(function(r){
+    return '<tr><td class="ncm">'+esc(r.ncm)+'</td><td class="prod">'+esc(r.prod)+
+      '<i>'+esc(r.anexo||'sem anexo')+(r.item?' - item '+esc(r.item):'')+' | '+esc(r.tipoBenef)+'</i></td>'+
+      '<td><span class="et '+cls(r)+'">'+esc(r.direito)+'</span></td>'+
+      '<td>'+esc(r.statusAnvisa)+'<i>nivel '+esc(r.nivel)+' - '+esc(r.forca)+'</i></td>'+
+      '<td class="n">'+brl(r.valor||0)+'</td>'+
+      '<td class="n">'+brl(r.impHoje||0)+'</td>'+
+      '<td class="n">'+brl(r.impCom||0)+'</td>'+
+      '<td class="n '+((r.impCom||0)<(r.impHoje||0)?'pos':'neg')+'">'+
+        (((r.impCom||0)-(r.impHoje||0))>0?'+':'')+brl((r.impCom||0)-(r.impHoje||0))+'</td>'+
+      '<td class="leg">'+esc(r.baseLegal)+'</td></tr>';}).join('');
+  var seg=t.seg.map(function(g){
+    var d=g.com-g.hoje;
+    return '<tr><td><b>'+esc(g.rot)+'</b></td><td class="n">'+g.produtos.toLocaleString('pt-BR')+'</td>'+
+      '<td class="n">'+brl(g.receita)+'</td><td class="n">'+(t.receita?pct(g.receita/t.receita):'-')+'</td>'+
+      '<td class="n">'+brl(g.hoje)+'</td><td class="n">'+brl(g.cheia)+'</td><td class="n">'+brl(g.com)+'</td>'+
+      '<td class="n '+(d<0?'pos':'neg')+'">'+(d>0?'+':'')+brl(d)+'</td></tr>';}).join('');
+
+  return '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">'+
+  '<meta name="viewport" content="width=device-width,initial-scale=1">'+
+  '<title>Reforma tributaria - '+esc(emp)+'</title><style>'+
+  ':root{--v900:#08251C;--v700:#14432F;--v600:#1B5E3F;--v100:#D8F3DC;--v50:#F2F8F4;'+
+  '--tx:#10201A;--mut:#5E7268;--bd:#DCE6E0;--bg:#F4F7F5;--ok:#1B5E3F;--warn:#9A5B00;--err:#A62B22}'+
+  '*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);'+
+  'font:14px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}'+
+  '.wrap{max-width:1200px;margin:0 auto;padding:26px 20px 60px}'+
+  'header{background:var(--v900);color:#fff;border-radius:14px;padding:22px 24px;margin-bottom:20px}'+
+  'header h1{margin:0 0 4px;font-size:21px}header p{margin:0;opacity:.78;font-size:13.5px}'+
+  '.id{display:flex;flex-wrap:wrap;gap:18px;margin-top:14px;font-size:12.5px;opacity:.9}'+
+  '.id b{display:block;opacity:.6;font-weight:500;text-transform:uppercase;letter-spacing:.05em;font-size:10.5px}'+
+  'h2{font-size:16px;margin:26px 0 10px}'+
+  '.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}'+
+  '.c{background:#fff;border:1px solid var(--bd);border-top:3px solid var(--v600);border-radius:11px;padding:14px 15px}'+
+  '.c b{display:block;font-size:21px;color:var(--v700)}.c span{font-size:12.5px;color:var(--mut)}'+
+  '.c.ok{border-top-color:var(--ok)}.c.ok b{color:var(--ok)}'+
+  '.c.err{border-top-color:var(--err)}.c.err b{color:var(--err)}'+
+  '.c.warn{border-top-color:var(--warn)}.c.warn b{color:var(--warn)}'+
+  '.frase{background:var(--v100);border:1px solid #BEE3CE;border-radius:11px;padding:14px 16px;margin:14px 0 0;font-size:14.5px}'+
+  'table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--bd);border-radius:11px;overflow:hidden}'+
+  'th{background:var(--v50);text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;'+
+  'color:var(--v700);padding:9px 10px;border-bottom:1px solid var(--bd);white-space:nowrap}'+
+  'td{padding:8px 10px;border-bottom:1px solid #EEF3F0;vertical-align:top;font-size:13px}'+
+  'td.n,th.n{text-align:right;white-space:nowrap;padding-right:14px}td.pos{color:var(--ok);font-weight:600}td.neg{color:var(--err)}'+
+  'td.ncm{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;color:var(--mut);white-space:nowrap}'+
+  'td i{display:block;font-style:normal;font-size:11.5px;color:var(--mut);margin-top:2px}'+
+  'td.leg{font-size:11.5px;color:var(--mut);line-height:1.45}'+
+  'table.prod{table-layout:fixed}table.prod td{word-wrap:break-word;overflow-wrap:anywhere}'+
+  '.et{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10.5px;font-weight:700;line-height:1.35}'+
+  '.et.ok{background:#D8F3DC;color:var(--ok)}.et.warn{background:#FFF0D6;color:var(--warn)}'+
+  '.et.mut{background:#EDF1EE;color:var(--mut)}'+
+  'tfoot td{font-weight:700;background:var(--v50)}'+
+  '.nota{font-size:12px;color:var(--mut);margin-top:10px;line-height:1.55}'+
+  '@media print{body{background:#fff}.wrap{max-width:none;padding:0}header{border-radius:0}'+
+  'table{page-break-inside:auto}tr{page-break-inside:avoid}}'+
+  '</style></head><body><div class="wrap">'+
+
+  '<header><h1>Reforma tributaria - LC 214/2025</h1>'+
+  '<p>Direito ao tratamento diferenciado por produto e impacto na tributacao</p>'+
+  '<div class="id"><div><b>Empresa</b>'+esc(emp)+'</div><div><b>CNPJ</b>'+esc(cnpj)+'</div>'+
+  '<div><b>Periodo</b>'+esc(per)+'</div><div><b>Produtos analisados</b>'+ST.resultado.length.toLocaleString('pt-BR')+'</div>'+
+  '<div><b>Anexos da LC 214</b>'+esc(ver||'versao nao informada')+'</div>'+
+  '<div><b>Base ANVISA</b>'+esc(ST.meta.dataBase||'-')+'</div><div><b>Emitido em</b>'+esc(hoje)+'</div></div></header>'+
+
+  '<h2>1. O que muda em valores</h2><div class="cards">'+
+  '<div class="c"><b>'+brl0(t.receita)+'</b><span>receita dos produtos analisados</span></div>'+
+  '<div class="c"><b>'+brl0(t.hoje)+'</b><span>tributacao hoje ('+pct(P.hoje)+')</span></div>'+
+  '<div class="c err"><b>'+brl0(t.cheia)+'</b><span>na reforma sem beneficio ('+pct(P.ref)+')</span></div>'+
+  '<div class="c ok"><b>'+brl0(t.com)+'</b><span>na reforma com o beneficio comprovado</span></div>'+
+  '<div class="c ok"><b>'+brl0(eco)+'</b><span>economia ja comprovada</span></div>'+
+  (ecoPot>0?'<div class="c warn"><b>'+brl0(ecoPot)+'</b><span>economia adicional se comprovar as pendencias</span></div>':'')+
+  '</div>'+
+  '<div class="frase">Dos '+ST.resultado.length.toLocaleString('pt-BR')+' produtos analisados, '+
+  ST.resultado.filter(temDireito).length.toLocaleString('pt-BR')+' tem direito ao tratamento diferenciado da LC 214/2025, '+
+  'o que representa '+(t.receita?pct(ST.resultado.filter(temDireito).reduce(function(a,r){return a+(r.valor||0);},0)/t.receita):'0%')+
+  ' da receita analisada e deixa de recolher '+brl0(eco)+' de IBS e CBS em relacao a tributacao integral.</div>'+
+
+  '<h2>2. Segregacao da receita</h2><table><thead><tr><th>Tratamento</th><th class="n">Produtos</th>'+
+  '<th class="n">Receita</th><th class="n">% da receita</th><th class="n">Hoje</th>'+
+  '<th class="n">Reforma sem beneficio</th><th class="n">Reforma com beneficio</th><th class="n">Diferenca vs. hoje</th></tr></thead>'+
+  '<tbody>'+seg+'</tbody><tfoot><tr><td>TOTAL</td><td class="n">'+ST.resultado.length.toLocaleString('pt-BR')+'</td>'+
+  '<td class="n">'+brl(t.receita)+'</td><td class="n">100,00%</td><td class="n">'+brl(t.hoje)+'</td>'+
+  '<td class="n">'+brl(t.cheia)+'</td><td class="n">'+brl(t.com)+'</td>'+
+  '<td class="n '+((t.com-t.hoje)<0?'pos':'neg')+'">'+((t.com-t.hoje)>0?'+':'')+brl(t.com-t.hoje)+'</td></tr></tfoot></table>'+
+
+  '<h2>3. Produto a produto</h2><table class="prod">'+
+  '<colgroup><col style="width:6%"><col style="width:17%"><col style="width:12%"><col style="width:10.5%">'+
+  '<col style="width:8%"><col style="width:8%"><col style="width:8%"><col style="width:8%"><col style="width:22.5%"></colgroup>'+
+  '<thead><tr><th>NCM</th><th>Produto</th><th>Direito ao beneficio</th>'+
+  '<th>Situacao na ANVISA</th><th class="n">Receita</th><th class="n">Hoje</th><th class="n">Na reforma</th>'+
+  '<th class="n">Diferenca</th><th>Por que - base legal</th></tr></thead><tbody>'+linhas+'</tbody></table>'+
+
+  '<p class="nota"><b>Como ler.</b> "Tem direito" significa que o produto esta em anexo da LC 214/2025 pela NCM e '+
+  'pela descricao, e que a exigencia de regularizacao na Anvisa esta cumprida ou nao se aplica ao anexo. '+
+  '"Direito a comprovar" e produto enquadrado cujo registro na Anvisa ainda nao foi localizado - o beneficio existe, '+
+  'falta a prova. "Sem direito - nao consta na Anvisa" e produto enquadrado que nao foi localizado em nenhuma das tres '+
+  'consultas a base oficial (codigo/GTIN, nome x texto do anexo e nome do produto): sem regularizacao, o art. 131, §1o '+
+  'nao concede o beneficio. <b>"Enquadramento a conferir"</b> e produto cuja NCM consta do anexo mas cuja '+
+  'descricao nao corresponde ao item descrito na lei - a NCM sozinha nao enquadra, e por isso ele entra sem '+
+  'beneficio ate alguem identificar o item. <b>"Beneficio sem suporte no anexo"</b> e o mesmo caso, com o '+
+  'agravante de o arquivo de origem ja trazer o beneficio aproveitado.</p>'+
+  '<p class="nota">Simulacao com aliquota de referencia de '+pct(P.ref)+' para IBS+CBS e carga atual de '+pct(P.hoje)+
+  ' sobre a receita. Os anexos da LC 214/2025 podem ser revistos a cada 120 dias por ato conjunto do Ministro da Fazenda '+
+  'e do Comite Gestor do IBS, ouvido o Ministerio da Saude (art. 131, §2o) - confira se ha ato posterior a versao usada. '+
+  'A situacao na Anvisa reflete a base oficial na data informada acima.</p>'+
+  '</div></body></html>';}
+
+document.getElementById('btRelCli').addEventListener('click',function(){
+  var h=relatorioClienteHtml();
+  var a=document.createElement('a');
+  a.href='data:text/html;charset=utf-8,'+encodeURIComponent(h);
+  a.download='relatorio_reforma_'+(document.getElementById('empresa').value||'cliente')
+    .replace(/[^A-Za-z0-9]+/g,'_').toLowerCase()+'.html';
+  document.body.appendChild(a);a.click();a.remove();
+  log('relatorio do cliente gerado - abra o arquivo no navegador e imprima em PDF se precisar enviar.');});
+
+document.getElementById('btRel').addEventListener('click',function(){
+  var b=this;b.disabled=true;log('gerando relatorio...');
+  var c=contagens();
+  google.script.run.withSuccessHandler(function(r){b.disabled=false;
+    if(!r.ok){erro(r.erro);return;}
+    log('relatorio criado: '+r.nome);window.open(r.url,'_blank');})
+    .withFailureHandler(function(e){b.disabled=false;erro(String(e));})
+    .gerarRelatorio({empresa:document.getElementById('empresa').value,
+      cnpj:document.getElementById('cnpjCli').value,
+      periodo:document.getElementById('periodo').value,
+      produtos:c.produtos,enquadrados:c.enquadrados,a:c.a,b:c.b,c:c.c,dd:c.dd,risco:c.risco,
+      arquivoProdutos:ST.meta.arquivoProdutos,qtdXml:ST.meta.qtdXml,
+      arquivoBase:ST.meta.arquivoBase,dataBase:ST.meta.dataBase,hashBase:ST.meta.hashBase,
+      usouIA:ST.meta.usouIA,modelo:ST.meta.modelo,confMin:ST.meta.confMin,
+      versaoAnexos:ST.meta.versaoAnexos,atoAnexos:ST.meta.atoAnexos});});
+
+function gravarLog(resultado){
+  var c=contagens();
+  google.script.run.registrarLog({arquivoProdutos:ST.meta.arquivoProdutos,qtdXml:ST.meta.qtdXml,
+    produtos:c.produtos,arquivoBase:ST.meta.arquivoBase,dataBase:ST.meta.dataBase,
+    hashBase:ST.meta.hashBase,usouIA:ST.meta.usouIA,modelo:ST.meta.modelo,
+    a:c.a,b:c.b,c:c.c,dd:c.dd,resultado:resultado});}
+</script>
+</body>
+</html>
