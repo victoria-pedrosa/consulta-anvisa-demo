@@ -1,6 +1,6 @@
-# Consulta Anvisa
+# Demonstração — Consulta de produtos ANVISA para a LC 214/2025
 
-> Projeto de portfólio de **Victória Pedrosa** (Automação, Processos e Dados). Automação desenvolvida para um escritório de contabilidade; **esta é uma versão com dados fictícios** — nomes, CNPJs, e-mails e IDs internos foram substituídos.
+> Projeto de portfólio de **Victória Pedrosa**. **Demonstração** de consulta de produtos ANVISA para a LC 214/2025 — versão com dados fictícios (nomes, CNPJs, e-mails e IDs internos substituídos).
 
 ## Problema de negócio
 Para aplicar o benefício da LC 214/2025, é preciso provar que o produto é regularizado na ANVISA e enquadrado no anexo da lei — duas checagens trabalhosas.
